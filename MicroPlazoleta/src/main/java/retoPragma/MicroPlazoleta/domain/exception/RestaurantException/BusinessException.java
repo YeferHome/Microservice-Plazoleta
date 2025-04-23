@@ -1,4 +1,4 @@
-package retoPragma.MicroPlazoleta.infrastructure.exception;
+package retoPragma.MicroPlazoleta.domain.exception.RestaurantException;
 
 public class BusinessException extends RuntimeException {
     public BusinessException(String message) {

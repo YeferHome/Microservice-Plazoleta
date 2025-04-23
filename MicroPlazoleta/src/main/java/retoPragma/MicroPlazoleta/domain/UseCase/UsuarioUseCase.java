@@ -10,7 +10,6 @@ public class UsuarioUseCase {
         this.usuarioServicePort = usuarioServicePort;
     }
 
-
     public String validarRolUsuario(Long id){
         return usuarioServicePort.obtenerRolUsuario(id);
     }

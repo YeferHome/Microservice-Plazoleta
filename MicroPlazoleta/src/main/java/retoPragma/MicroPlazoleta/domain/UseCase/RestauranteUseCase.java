@@ -3,9 +3,12 @@ package retoPragma.MicroPlazoleta.domain.UseCase;
 
 import retoPragma.MicroPlazoleta.domain.api.IRestauranteServicePort;
 import retoPragma.MicroPlazoleta.domain.api.IUsuarioServicePort;
+import retoPragma.MicroPlazoleta.domain.exception.RestaurantException.DocumentException;
+import retoPragma.MicroPlazoleta.domain.exception.RestaurantException.NameRestaurantException;
+import retoPragma.MicroPlazoleta.domain.exception.RestaurantException.NoOwnerException;
+import retoPragma.MicroPlazoleta.domain.exception.RestaurantException.PhoneException;
 import retoPragma.MicroPlazoleta.domain.model.Restaurante;
 import retoPragma.MicroPlazoleta.domain.spi.IRestaurantePersistencePort;
-import retoPragma.MicroPlazoleta.infrastructure.exception.BusinessException;
 
 import java.util.Optional;
 
@@ -24,18 +27,18 @@ public class RestauranteUseCase implements IRestauranteServicePort {
 
         String rol = usuarioServicePort.obtenerRolUsuario(restaurante.getIdUsuario());
         if (!"PROPIETARIO".equalsIgnoreCase(rol)) {
-            throw new RuntimeException("El usuario no tiene rol de propietario.");
+            throw new NoOwnerException();
         }
 
         if (restaurante.getNit() == null || restaurante.getNit() <= 0) {
-            throw new BusinessException("Documento de identidad debe ser un número positivo.");
+            throw new DocumentException();
         }
         if (!esTelefonoRestauranteValido(restaurante.getTelefonoRestaurante())) {
-            throw new BusinessException("Teléfono inválido; máximo 13 dígitos y debe iniciar con '+57'.");
+            throw new PhoneException();
         }
 
         if (!esNombreRestauranteValido(restaurante.getNombreRestaurante())) {
-            throw new BusinessException("El nombre de el restaurante no puede ser solo numeros. Ejemplo:'Mi Restaurante 21'");
+            throw new NameRestaurantException();
         }
         restaurantePersistencePort.saveRestaurante(restaurante);
     }

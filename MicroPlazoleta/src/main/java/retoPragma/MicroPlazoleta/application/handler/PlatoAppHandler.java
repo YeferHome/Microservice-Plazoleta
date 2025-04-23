@@ -5,6 +5,7 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import retoPragma.MicroPlazoleta.application.dto.PlatoAppRequestDto;
+import retoPragma.MicroPlazoleta.application.mapper.IPlatoAppRequestMapper;
 import retoPragma.MicroPlazoleta.domain.api.IPlatoServicePort;
 import retoPragma.MicroPlazoleta.domain.model.Plato;
 
@@ -14,20 +15,12 @@ import retoPragma.MicroPlazoleta.domain.model.Plato;
 public class PlatoAppHandler implements IPlatoAppHandler {
 
     private final IPlatoServicePort platoServicePort;
+    private final IPlatoAppRequestMapper platoAppRequestMapper;
 
 
     @Override
     public void savePlatoInPlatoApp(PlatoAppRequestDto platoAppRequestDto) {
-        Plato plato = new Plato();
-        plato.setNombrePlato(platoAppRequestDto.getNombrePlato());
-        plato.setDescripcionPlato(platoAppRequestDto.getDescripcionPlato());
-        plato.setPrecioPlato(platoAppRequestDto.getPrecioPlato());
-        plato.setUrlPlato(platoAppRequestDto.getUrlPlato());
-        plato.setCategoriaPlato(platoAppRequestDto.getCategoriaPlato());
-        plato.setActivoPlato(true);
-        plato.setIdRestaurante(platoAppRequestDto.getIdRestaurante());
-        plato.setIdUsuario(platoAppRequestDto.getIdUsuario());
-
+        Plato plato = platoAppRequestMapper.toPlato(platoAppRequestDto);
         platoServicePort.savePlato(plato);
     }
 }

@@ -3,10 +3,13 @@ package retoPragma.MicroPlazoleta.domain.UseCase;
 
 import retoPragma.MicroPlazoleta.domain.api.IPlatoServicePort;
 import retoPragma.MicroPlazoleta.domain.api.IUsuarioServicePort;
+import retoPragma.MicroPlazoleta.domain.exception.PlatoException.NoPermissionCreateException;
+import retoPragma.MicroPlazoleta.domain.exception.PlatoException.PlatoAssociatedException;
+import retoPragma.MicroPlazoleta.domain.exception.PlatoException.PricePlatoException;
 import retoPragma.MicroPlazoleta.domain.model.Plato;
+import retoPragma.MicroPlazoleta.domain.model.Restaurante;
 import retoPragma.MicroPlazoleta.domain.spi.IPlatoPersistencePort;
 import retoPragma.MicroPlazoleta.domain.spi.IRestaurantePersistencePort;
-import retoPragma.MicroPlazoleta.infrastructure.exception.BusinessException;
 
 public class PlatoUseCase implements IPlatoServicePort {
 
@@ -25,16 +28,20 @@ public class PlatoUseCase implements IPlatoServicePort {
     public void savePlato(Plato plato) {
 
         if (!"PROPIETARIO".equalsIgnoreCase(usuarioServicePort.obtenerRolUsuario(plato.getIdUsuario()))) {
-            throw new BusinessException("El usuario no tiene permisos para crear platos.");
+            throw new NoPermissionCreateException();
         }
 
 
         if (restaurantePersistencePort.findRestauranteById(plato.getIdRestaurante()) == null) {
-            throw new BusinessException("El plato debe estar asociado a un restaurante válido.");
+            throw new PlatoAssociatedException();
+        }
+        if (plato.getPrecioPlato() <= 0) {
+            throw new PricePlatoException();
         }
 
         plato.setActivoPlato(true);
 
         platoPersistencePort.savePlato(plato);
     }
+
 }
