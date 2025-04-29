@@ -27,6 +27,7 @@ public class SecurityConfiguration {
                                 "/swagger-ui/**",
                                 "/v3/api-docs/**",
                                 "/restauranteApp/all",
+                                "/platoApp/all",
                                 "/platoApp/restaurantes/{idRestaurante}/menu",
                                 "/pedidoApp/savePedido"
                         ).permitAll()

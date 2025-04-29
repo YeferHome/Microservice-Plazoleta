@@ -3,6 +3,9 @@ package retoPragma.MicroPlazoleta.application.mapper;
 import org.mapstruct.Mapper;
 import org.mapstruct.ReportingPolicy;
 import retoPragma.MicroPlazoleta.application.dto.PlatoAppRequestDto;
+import retoPragma.MicroPlazoleta.application.dto.PlatoAppResponseDto;
+import retoPragma.MicroPlazoleta.application.dto.PlatoUpdateEstadoRequestDto;
+import retoPragma.MicroPlazoleta.application.dto.PlatoUpdateResponseDto;
 import retoPragma.MicroPlazoleta.domain.model.Plato;
 
 @Mapper(componentModel = "spring",
@@ -10,5 +13,8 @@ import retoPragma.MicroPlazoleta.domain.model.Plato;
         unmappedSourcePolicy = ReportingPolicy.IGNORE)
 public interface IPlatoAppResponseMapper {
 
-    PlatoAppRequestDto toPlatoAppRequestDto(Plato plato);
+    PlatoAppResponseDto toPlatoAppResponseDto(Plato plato);
+    PlatoUpdateResponseDto toPlatoUpdateResponseDto(Plato plato);
+    PlatoUpdateEstadoRequestDto toPlatoUpdateEstadoRequestDto(Plato plato);
+
 }

@@ -6,6 +6,4 @@ import retoPragma.MicroPlazoleta.infrastructure.output.entity.PlatoEntity;
 
 @Repository
 public interface IPlatoRepository extends JpaRepository<PlatoEntity, Long> {
-
-
 }
