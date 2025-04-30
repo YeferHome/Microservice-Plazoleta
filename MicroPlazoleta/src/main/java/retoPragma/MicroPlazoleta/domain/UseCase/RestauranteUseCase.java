@@ -10,6 +10,7 @@ import retoPragma.MicroPlazoleta.domain.exception.RestaurantException.PhoneExcep
 import retoPragma.MicroPlazoleta.domain.model.Restaurante;
 import retoPragma.MicroPlazoleta.domain.spi.IRestaurantePersistencePort;
 
+import java.util.List;
 import java.util.Optional;
 
 import static retoPragma.MicroPlazoleta.domain.util.restaurantUtil.RegexConstants.NOMBRE_VALIDO;
@@ -47,10 +48,9 @@ public class RestauranteUseCase implements IRestauranteServicePort {
         }
         restaurantePersistencePort.saveRestaurante(restaurante);
     }
-
     @Override
-    public Optional<Restaurante> findRestauranteById(Long id) {
-        return Optional.empty();
+    public List<Restaurante> getAllRestaurantes(int page, int size) {
+        return restaurantePersistencePort.findAllRestaurantsOrderedByName(page, size);
     }
 
 
