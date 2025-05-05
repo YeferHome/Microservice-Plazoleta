@@ -10,6 +10,7 @@ import retoPragma.MicroPlazoleta.domain.exception.RestaurantException.NoRetauran
 import retoPragma.MicroPlazoleta.domain.spi.IRestaurantePersistencePort;
 import retoPragma.MicroPlazoleta.infrastructure.output.entity.RestauranteEntity;
 import retoPragma.MicroPlazoleta.infrastructure.output.mapper.IRestauranteEntityMapper;
+import retoPragma.MicroPlazoleta.infrastructure.output.repository.IPlatoRepository;
 import retoPragma.MicroPlazoleta.infrastructure.output.repository.IRestauranteRepository;
 
 import java.util.List;
@@ -19,6 +20,7 @@ import java.util.stream.Collectors;
 public class RestauranteJpaAdapter implements IRestaurantePersistencePort {
     private final IRestauranteRepository restauranteRepository;
     private final IRestauranteEntityMapper restauranteEntityMapper;
+    private final IPlatoRepository platoRepository;
 
     @Override
     public void saveRestaurante(Restaurante restaurante) {
@@ -40,5 +42,10 @@ public class RestauranteJpaAdapter implements IRestaurantePersistencePort {
                 .stream()
                 .map(restauranteEntityMapper::toRestaurante)
                 .collect(Collectors.toList());
+    }
+
+    @Override
+    public boolean platoPerteneceARestaurante(Long idPlato, Long idRestaurante) {
+        return platoRepository.existsByIdPlatoAndIdRestaurante(idPlato, idRestaurante);
     }
 }

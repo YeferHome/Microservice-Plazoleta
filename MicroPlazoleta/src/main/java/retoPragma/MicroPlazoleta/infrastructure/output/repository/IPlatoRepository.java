@@ -10,4 +10,5 @@ import retoPragma.MicroPlazoleta.infrastructure.output.entity.PlatoEntity;
 public interface IPlatoRepository extends JpaRepository<PlatoEntity, Long> {
     Page<PlatoEntity> findAllByIdRestaurante(Long idRestaurante, Pageable pageable);
     Page<PlatoEntity> findAllByIdRestauranteAndCategoriaPlato(Long idRestaurante, String categoria, Pageable pageable);
+    boolean existsByIdPlatoAndIdRestaurante(Long idPlato, Long idRestaurante);
 }

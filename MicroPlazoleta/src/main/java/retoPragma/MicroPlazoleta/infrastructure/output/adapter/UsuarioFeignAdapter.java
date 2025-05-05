@@ -3,7 +3,7 @@ package retoPragma.MicroPlazoleta.infrastructure.output.adapter;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 import retoPragma.MicroPlazoleta.domain.api.IUsuarioServicePort;
-import retoPragma.MicroPlazoleta.infrastructure.input.client.UsuarioFeignClient;
+import retoPragma.MicroPlazoleta.infrastructure.input.UsuarioFeignClient;
 
 
 @Service
