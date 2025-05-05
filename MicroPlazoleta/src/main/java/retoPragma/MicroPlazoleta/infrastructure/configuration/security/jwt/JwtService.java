@@ -37,6 +37,11 @@ public class JwtService {
         return extractClaim(token, Claims::getExpiration).before(new Date());
     }
 
+    public boolean tieneRol(String token, String rolEsperado) {
+        String rol = extractRol(token);
+        return rolEsperado.equalsIgnoreCase(rol);
+    }
+
     private <T> T extractClaim(String token, Function<Claims, T> claimsResolver) {
         JwtParser parser = Jwts.parser()
                 .verifyWith(getSigningKey())

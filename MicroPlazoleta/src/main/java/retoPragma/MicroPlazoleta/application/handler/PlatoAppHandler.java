@@ -4,14 +4,13 @@ package retoPragma.MicroPlazoleta.application.handler;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import retoPragma.MicroPlazoleta.application.dto.PlatoAppRequestDto;
-import retoPragma.MicroPlazoleta.application.dto.PlatoUpdateEstadoResponseDto;
-import retoPragma.MicroPlazoleta.application.dto.PlatoUpdateRequestDto;
-import retoPragma.MicroPlazoleta.application.dto.PlatoUpdateResponseDto;
+import retoPragma.MicroPlazoleta.application.dto.*;
 import retoPragma.MicroPlazoleta.application.mapper.IPlatoAppRequestMapper;
 import retoPragma.MicroPlazoleta.application.mapper.IPlatoAppResponseMapper;
 import retoPragma.MicroPlazoleta.domain.api.IPlatoServicePort;
 import retoPragma.MicroPlazoleta.domain.model.Plato;
+
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -44,6 +43,12 @@ public class PlatoAppHandler implements IPlatoAppHandler {
 
         return new PlatoUpdateEstadoResponseDto(
                 platoActualizado.getEstado());
+    }
+
+    @Override
+    public List<PlatoAppResponseDto> listPlatosMenu(Long idRestaurante, String categoria, int page, int size) {
+        List<Plato> platos = platoServicePort.getPlatosByRestaurante(idRestaurante, categoria, page, size);
+        return platoAppResponseMapper.PlatoAppResponseDtoList(platos);
     }
 
 }

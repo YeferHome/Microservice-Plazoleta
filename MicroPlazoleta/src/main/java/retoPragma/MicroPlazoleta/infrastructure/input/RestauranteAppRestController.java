@@ -18,7 +18,7 @@ public class RestauranteAppRestController {
 
     private final IRestauranteAppHandler restauranteAppHandler;
 
-    @PostMapping("/save")
+    @PostMapping("/saveRestaurante")
     public ResponseEntity<Void> saveRestauranteInRestauranteApp(@RequestBody RestauranteAppRequestDto restauranteAppRequestDto){
         restauranteAppHandler.saveRestauranteInRestauranteApp(restauranteAppRequestDto);
         return ResponseEntity.status(HttpStatus.CREATED).build();
