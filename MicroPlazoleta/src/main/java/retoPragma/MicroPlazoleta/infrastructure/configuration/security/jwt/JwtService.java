@@ -1,7 +1,6 @@
 package retoPragma.MicroPlazoleta.infrastructure.configuration.security.jwt;
 
 import org.springframework.beans.factory.annotation.Value;
-
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtParser;
 import io.jsonwebtoken.Jwts;
@@ -22,8 +21,6 @@ public class JwtService {
     @Value("${jwt.expiration}")
     private long expiration;
 
-
-
     public String extractCorreo(String token) {
         return extractClaim(token, Claims::getSubject);
     }
@@ -32,8 +29,17 @@ public class JwtService {
         return extractClaim(token, claims -> claims.get("rol", String.class));
     }
 
+    public Long extractId(String token) {
+        return extractClaim(token, claims -> claims.get("id", Long.class));
+    }
+
     public boolean isTokenExpired(String token) {
         return extractClaim(token, Claims::getExpiration).before(new Date());
+    }
+
+    public boolean tieneRol(String token, String rolEsperado) {
+        String rol = extractRol(token);
+        return rolEsperado.equalsIgnoreCase(rol);
     }
 
     private <T> T extractClaim(String token, Function<Claims, T> claimsResolver) {

@@ -5,12 +5,8 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class PlatoAppRequestDto {
+public class PlatoUpdateResponseDto {
     private String nombrePlato;
     private String descripcionPlato;
     private Long precioPlato;
-    private String urlPlato;
-    private String categoriaPlato;
-    private Long idRestaurante;
-    private Long idUsuario;
 }

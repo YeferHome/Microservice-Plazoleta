@@ -2,7 +2,9 @@ package retoPragma.MicroPlazoleta.infrastructure.configuration.security;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
@@ -23,23 +25,24 @@ public class SecurityConfiguration {
         http
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
+
+
                         .requestMatchers(
                                 "/swagger-ui/**",
                                 "/v3/api-docs/**",
                                 "/restauranteApp/all",
-                                "/platoApp/restaurantes/{idRestaurante}/menu",
-                                "/pedidoApp/savePedido"
-                        ).permitAll()
+                                "/platoApp/all",
+                                "/restaurantes/all",
+                                "/platoApp/restaurantes/{id}/menu"
+                        )
+                        .permitAll()
+                        .requestMatchers(HttpMethod.GET, "/platoApp/restaurantes/{idRestaurante}/menu").hasRole("CLIENTE")
                         .anyRequest().authenticated()
                 )
-                .sessionManagement(session -> session.sessionCreationPolicy(
-                        org.springframework.security.config.http.SessionCreationPolicy.STATELESS))
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .httpBasic(httpBasic -> httpBasic.disable())
                 .formLogin(formLogin -> formLogin.disable())
-                .addFilterBefore(
-                        new JwtAuthenticationFilter(jwtService),
-                        UsernamePasswordAuthenticationFilter.class
-                );
+                .addFilterBefore(new JwtAuthenticationFilter(jwtService), UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }

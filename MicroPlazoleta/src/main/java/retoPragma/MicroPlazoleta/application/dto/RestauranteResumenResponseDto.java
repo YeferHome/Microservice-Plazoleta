@@ -2,18 +2,14 @@ package retoPragma.MicroPlazoleta.application.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-@Setter
 @Getter
+@Setter
+@NoArgsConstructor
 @AllArgsConstructor
-public class RestauranteAppResponseDto {
-
+public class RestauranteResumenResponseDto {
     private String nombreRestaurante;
-    private Long nit;
-    private String direccion;
-    private String telefonoRestaurante;
     private String urlLogo;
-    private Long idUsuario;
 }
-

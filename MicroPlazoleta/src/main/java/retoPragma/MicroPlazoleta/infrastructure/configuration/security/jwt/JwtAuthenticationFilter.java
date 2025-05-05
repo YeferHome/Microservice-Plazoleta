@@ -37,15 +37,17 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             try {
                 String correo = jwtService.extractCorreo(token);
                 String role = jwtService.extractRol(token);
+                Long id = jwtService.extractId(token);
 
-
-                if (correo != null && role != null && !jwtService.isTokenExpired(token)) {
+                if (correo != null && role != null && id != null && !jwtService.isTokenExpired(token)) {
                     List<SimpleGrantedAuthority> authorities = Collections.singletonList(
                             new SimpleGrantedAuthority("ROLE_" + role)
                     );
 
                     UsernamePasswordAuthenticationToken authentication =
                             new UsernamePasswordAuthenticationToken(correo, token, authorities);
+
+                    authentication.setDetails(id);
 
                     SecurityContextHolder.getContext().setAuthentication(authentication);
                 }
@@ -58,4 +60,3 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         chain.doFilter(request, response);
     }
 }
-

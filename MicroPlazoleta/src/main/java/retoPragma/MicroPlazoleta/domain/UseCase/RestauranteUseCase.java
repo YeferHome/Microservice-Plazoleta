@@ -10,7 +10,13 @@ import retoPragma.MicroPlazoleta.domain.exception.RestaurantException.PhoneExcep
 import retoPragma.MicroPlazoleta.domain.model.Restaurante;
 import retoPragma.MicroPlazoleta.domain.spi.IRestaurantePersistencePort;
 
+import java.util.List;
 import java.util.Optional;
+
+import static retoPragma.MicroPlazoleta.domain.util.restaurantUtil.RegexConstants.NOMBRE_VALIDO;
+import static retoPragma.MicroPlazoleta.domain.util.restaurantUtil.RegexConstants.NUMERO_VALIDO;
+import static retoPragma.MicroPlazoleta.domain.util.restaurantUtil.RestaurantConstants.DOCUMENTO_POSITIVO;
+import static retoPragma.MicroPlazoleta.domain.util.restaurantUtil.RestaurantConstants.PROPIETARIO;
 
 public class RestauranteUseCase implements IRestauranteServicePort {
 
@@ -26,11 +32,11 @@ public class RestauranteUseCase implements IRestauranteServicePort {
     public void saveRestaurante(Restaurante restaurante) {
 
         String rol = usuarioServicePort.obtenerRolUsuario(restaurante.getIdUsuario());
-        if (!"PROPIETARIO".equalsIgnoreCase(rol)) {
+        if (!PROPIETARIO.equalsIgnoreCase(rol)) {
             throw new NoOwnerException();
         }
 
-        if (restaurante.getNit() == null || restaurante.getNit() <= 0) {
+        if (restaurante.getNit() == null || restaurante.getNit() <= DOCUMENTO_POSITIVO) {
             throw new DocumentException();
         }
         if (!esTelefonoRestauranteValido(restaurante.getTelefonoRestaurante())) {
@@ -42,17 +48,16 @@ public class RestauranteUseCase implements IRestauranteServicePort {
         }
         restaurantePersistencePort.saveRestaurante(restaurante);
     }
-
     @Override
-    public Optional<Restaurante> findRestauranteById(Long id) {
-        return Optional.empty();
+    public List<Restaurante> getAllRestaurantes(int page, int size) {
+        return restaurantePersistencePort.findAllRestaurantsOrderedByName(page, size);
     }
 
 
     private boolean esTelefonoRestauranteValido(String telefonoRestaurante) {
         if (telefonoRestaurante == null) return false;
 
-        return telefonoRestaurante.matches("\\+?\\d{1,13}");
+        return telefonoRestaurante.matches(NUMERO_VALIDO);
     }
 
     private boolean esNombreRestauranteValido(String nombre) {
@@ -60,7 +65,7 @@ public class RestauranteUseCase implements IRestauranteServicePort {
             return false;
         }
 
-        if (nombre.matches("\\d+")) {
+        if (nombre.matches(NOMBRE_VALIDO)) {
             return false;
         }
         return true;

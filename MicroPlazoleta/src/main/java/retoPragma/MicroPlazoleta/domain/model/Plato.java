@@ -1,6 +1,5 @@
 package retoPragma.MicroPlazoleta.domain.model;
 
-
 public class Plato {
 
     private Long idPlato;
@@ -9,21 +8,21 @@ public class Plato {
     private Long precioPlato;
     private String urlPlato;
     private String categoriaPlato;
-    private Boolean activoPlato;
+    private Boolean estado;
     private Long idUsuario;
     private Long idRestaurante;
 
     public Plato() {
     }
 
-    public Plato(Long idPlato, String nombrePlato, String descripcionPlato, Long precioPlato, String urlPlato, String categoriaPlato, Boolean activoPlato, Long idUsuario, Long idRestaurante) {
+    public Plato(Long idPlato, String nombrePlato, String descripcionPlato, Long precioPlato, String urlPlato, String categoriaPlato, Boolean estado, Long idUsuario, Long idRestaurante) {
         this.idPlato = idPlato;
         this.nombrePlato = nombrePlato;
         this.descripcionPlato = descripcionPlato;
         this.precioPlato = precioPlato;
         this.urlPlato = urlPlato;
         this.categoriaPlato = categoriaPlato;
-        this.activoPlato = activoPlato;
+        this.estado = estado;
         this.idUsuario = idUsuario;
         this.idRestaurante = idRestaurante;
     }
@@ -76,12 +75,12 @@ public class Plato {
         this.categoriaPlato = categoriaPlato;
     }
 
-    public Boolean getActivoPlato() {
-        return activoPlato;
+    public Boolean getEstado() {
+        return estado;
     }
 
-    public void setActivoPlato(Boolean activoPlato) {
-        this.activoPlato = activoPlato;
+    public void setEstado(Boolean estado) {
+        this.estado = estado;
     }
 
     public Long getIdUsuario() {
