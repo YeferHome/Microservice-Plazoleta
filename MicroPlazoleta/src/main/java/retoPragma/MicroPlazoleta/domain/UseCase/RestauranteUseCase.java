@@ -11,7 +11,6 @@ import retoPragma.MicroPlazoleta.domain.model.Restaurante;
 import retoPragma.MicroPlazoleta.domain.spi.IRestaurantePersistencePort;
 
 import java.util.List;
-import java.util.Optional;
 
 import static retoPragma.MicroPlazoleta.domain.util.restaurantUtil.RegexConstants.NOMBRE_VALIDO;
 import static retoPragma.MicroPlazoleta.domain.util.restaurantUtil.RegexConstants.NUMERO_VALIDO;

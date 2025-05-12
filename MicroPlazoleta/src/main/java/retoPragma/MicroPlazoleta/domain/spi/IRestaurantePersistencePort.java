@@ -10,4 +10,5 @@ public interface IRestaurantePersistencePort {
     Restaurante findRestauranteById(Long id);
     List<Restaurante> findAllRestaurantsOrderedByName(int page, int size);
     boolean platoPerteneceARestaurante(Long idPlato, Long idRestaurante);
+    boolean elEmpleadoPerteneceAlRestaurante(Long idRestaurante);
 }

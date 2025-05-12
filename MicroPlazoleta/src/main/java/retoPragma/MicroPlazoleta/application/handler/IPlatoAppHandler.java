@@ -7,7 +7,7 @@ import java.util.List;
 public interface IPlatoAppHandler {
 
     void savePlatoInPlatoApp(PlatoAppRequestDto platoAppRequestDto);
-    PlatoUpdateResponseDto updatePlatoInPlatoApp(Long platoId, PlatoUpdateRequestDto platoUpdateRequestDto, Long usuarioId);
-    PlatoUpdateEstadoResponseDto updateEstadoPlatoInPlatoApp(Long platoId, Boolean nuevoEstado, Long usuarioId);
+    PlatoUpdateResponseDto updatePlatoInPlatoApp(Long platoId, PlatoUpdateRequestDto platoUpdateRequestDto);
+    PlatoUpdateEstadoResponseDto updateEstadoPlatoInPlatoApp(Long platoId, Boolean nuevoEstado);
     List<PlatoAppResponseDto> listPlatosMenu(Long idRestaurante, String categoria, int page, int size);
 }

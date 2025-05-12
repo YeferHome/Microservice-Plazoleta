@@ -1,4 +1,4 @@
-package retoPragma.MicroPlazoleta.infrastructure.input;
+package retoPragma.MicroPlazoleta.infrastructure.input.client;
 
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;

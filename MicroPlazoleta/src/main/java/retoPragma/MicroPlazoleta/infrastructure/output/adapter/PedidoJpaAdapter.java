@@ -2,6 +2,8 @@ package retoPragma.MicroPlazoleta.infrastructure.output.adapter;
 
 
 import lombok.AllArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import retoPragma.MicroPlazoleta.domain.model.Pedido;
 import retoPragma.MicroPlazoleta.domain.spi.IPedidoPersistencePort;
 import retoPragma.MicroPlazoleta.domain.util.pedidoUtil.EstadoPedido;
@@ -40,5 +42,12 @@ public class PedidoJpaAdapter implements IPedidoPersistencePort {
                 idUsuario,
                 List.of(EstadoPedido.PENDIENTE, EstadoPedido.EN_PREPARACION, EstadoPedido.LISTO));
     }
-   // ------------------------------------------------------------
+
+    @Override
+    public Page<Pedido> findPedidosPorEstadoYRestaurante(EstadoPedido estado, Long restauranteId, PageRequest pageRequest) {
+
+        Page<PedidoEntity> pedidoEntities = pedidoRepository.findByEstadoAndIdRestaurante(estado, restauranteId, pageRequest);
+
+        return pedidoEntities.map(pedidoEntityMapper::toPedido);
+    }
 }

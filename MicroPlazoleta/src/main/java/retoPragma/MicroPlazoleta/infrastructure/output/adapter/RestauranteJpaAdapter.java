@@ -48,4 +48,9 @@ public class RestauranteJpaAdapter implements IRestaurantePersistencePort {
     public boolean platoPerteneceARestaurante(Long idPlato, Long idRestaurante) {
         return platoRepository.existsByIdPlatoAndIdRestaurante(idPlato, idRestaurante);
     }
+    @Override
+    public boolean elEmpleadoPerteneceAlRestaurante(Long restauranteId) {
+        return restauranteRepository.findById(restauranteId).isPresent();
+    }
+
 }

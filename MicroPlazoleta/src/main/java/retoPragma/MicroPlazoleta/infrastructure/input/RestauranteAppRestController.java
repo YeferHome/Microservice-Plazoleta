@@ -5,7 +5,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import retoPragma.MicroPlazoleta.application.dto.RestauranteAppRequestDto;
-import retoPragma.MicroPlazoleta.application.dto.RestauranteAppResponseDto;
 import retoPragma.MicroPlazoleta.application.dto.RestauranteResumenResponseDto;
 import retoPragma.MicroPlazoleta.application.handler.IRestauranteAppHandler;
 
