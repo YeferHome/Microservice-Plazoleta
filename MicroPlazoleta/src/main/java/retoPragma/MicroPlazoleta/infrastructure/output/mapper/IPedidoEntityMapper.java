@@ -3,7 +3,7 @@ package retoPragma.MicroPlazoleta.infrastructure.output.mapper;
 
 import org.mapstruct.Mapper;
 import org.mapstruct.ReportingPolicy;
-import retoPragma.MicroPlazoleta.domain.model.Pedido;
+import retoPragma.MicroPlazoleta.domain.model.Order;
 import retoPragma.MicroPlazoleta.infrastructure.output.entity.PedidoEntity;
 
 @Mapper(componentModel = "spring",
@@ -11,6 +11,6 @@ import retoPragma.MicroPlazoleta.infrastructure.output.entity.PedidoEntity;
         unmappedSourcePolicy = ReportingPolicy.IGNORE)
 public interface IPedidoEntityMapper {
 
-    PedidoEntity toPedidoEntity(Pedido pedido);
-    Pedido toPedido(PedidoEntity pedidoEntity);
+    PedidoEntity toPedidoEntity(Order order);
+    Order toPedido(PedidoEntity pedidoEntity);
 }

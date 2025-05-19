@@ -8,7 +8,7 @@ import retoPragma.MicroPlazoleta.application.dto.RestauranteAppRequestDto;
 import retoPragma.MicroPlazoleta.application.dto.RestauranteResumenResponseDto;
 import retoPragma.MicroPlazoleta.application.mapper.IRestauranteAppRequestMapper;
 import retoPragma.MicroPlazoleta.domain.api.IRestauranteServicePort;
-import retoPragma.MicroPlazoleta.domain.model.Restaurante;
+import retoPragma.MicroPlazoleta.domain.model.Restaurant;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -24,14 +24,14 @@ public class RestauranteAppHandler implements IRestauranteAppHandler {
 
     @Override
     public void saveRestauranteInRestauranteApp(RestauranteAppRequestDto restauranteAppRequestDto) {
-        Restaurante restaurante = restauranteAppRequestMapper.toRestaurante(restauranteAppRequestDto);
-        restauranteServicePort.saveRestaurante(restaurante);
+        Restaurant restaurant = restauranteAppRequestMapper.toRestaurante(restauranteAppRequestDto);
+        restauranteServicePort.saveRestaurante(restaurant);
     }
     @Override
     public List<RestauranteResumenResponseDto> listRestaurantes(int page, int size) {
-        List<Restaurante> restaurantes = restauranteServicePort.getAllRestaurantes(page, size);
+        List<Restaurant> restaurants = restauranteServicePort.getAllRestaurantes(page, size);
 
-        return restaurantes.stream()
+        return restaurants.stream()
                 .map(r -> new RestauranteResumenResponseDto(r.getNombreRestaurante(), r.getUrlLogo()))
                 .collect(Collectors.toList());
     }

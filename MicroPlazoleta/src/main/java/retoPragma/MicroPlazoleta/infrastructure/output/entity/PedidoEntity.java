@@ -4,7 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import retoPragma.MicroPlazoleta.domain.util.pedidoUtil.EstadoPedido;
+import retoPragma.MicroPlazoleta.domain.util.pedidoUtil.EstateOrder;
 
 import java.util.List;
 
@@ -24,7 +24,7 @@ public class PedidoEntity {
     private Long idRestaurante;
 
     @Enumerated(EnumType.STRING)
-    private EstadoPedido estado;
+    private EstateOrder estado;
 
     @OneToMany(mappedBy = "pedido", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<PedidoItemEntity> items;
