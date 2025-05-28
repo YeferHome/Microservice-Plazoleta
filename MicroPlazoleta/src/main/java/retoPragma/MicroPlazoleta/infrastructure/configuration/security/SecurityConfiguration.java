@@ -33,7 +33,9 @@ public class SecurityConfiguration {
                                 "/restauranteApp/all",
                                 "/platoApp/all",
                                 "/restaurantes/all",
-                                "/platoApp/restaurantes/{id}/menu"
+                                "/platoApp/restaurantes/{id}/menu",
+                                "/pedidoApp/savePedido",
+                                "/pedidoApp/estado"
                         )
                         .permitAll()
                         .requestMatchers(HttpMethod.GET, "/platoApp/restaurantes/{idRestaurante}/menu").hasRole("CLIENTE")
