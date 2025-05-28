@@ -5,6 +5,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import retoPragma.MicroPlazoleta.domain.model.PageModel;
+import retoPragma.MicroPlazoleta.domain.model.PageRequestModel;
 import retoPragma.MicroPlazoleta.domain.model.Restaurant;
 import retoPragma.MicroPlazoleta.domain.util.exception.RestaurantException.NoRetaurantExcepcion;
 import retoPragma.MicroPlazoleta.domain.spi.IRestaurantPersistencePort;
@@ -14,43 +16,55 @@ import retoPragma.MicroPlazoleta.infrastructure.output.repository.IPlatoReposito
 import retoPragma.MicroPlazoleta.infrastructure.output.repository.IRestauranteRepository;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 @RequiredArgsConstructor
 public class RestaurantJpaAdapter implements IRestaurantPersistencePort {
-    private final IRestauranteRepository restauranteRepository;
-    private final IRestauranteEntityMapper restauranteEntityMapper;
+
+    private final IRestauranteRepository restaurantRepository;
+    private final IRestauranteEntityMapper restaurantEntityMapper;
     private final IPlatoRepository platoRepository;
 
     @Override
     public void saveRestaurant(Restaurant restaurant) {
-        restauranteRepository.save(restauranteEntityMapper.toRestauranteEntity(restaurant));
+        restaurantRepository.save(restaurantEntityMapper.toRestauranteEntity(restaurant));
     }
 
     @Override
     public Restaurant findRestaurantById(Long id) {
-        return restauranteRepository.findById(id)
-                .map(restauranteEntityMapper::toRestaurante)
+        return restaurantRepository.findById(id)
+                .map(restaurantEntityMapper::toRestaurante)
                 .orElseThrow(NoRetaurantExcepcion::new);
     }
-    @Override
-    public List<Restaurant> findAllRestaurantsOrderedByName(int page, int size) {
-        Pageable pageable = PageRequest.of(page, size, Sort.by("nombreRestaurante").ascending());
-        Page<RestauranteEntity> pageResult = restauranteRepository.findAll(pageable);
 
-        return pageResult.getContent()
-                .stream()
-                .map(restauranteEntityMapper::toRestaurante)
-                .collect(Collectors.toList());
+    @Override
+    public PageModel<Restaurant> findAllRestaurantsOrderedByName(PageRequestModel pageRequestModel) {
+        Pageable pageable = PageRequest.of(
+                pageRequestModel.getPage(),
+                pageRequestModel.getSize(),
+                Sort.by("nameRestaurant").ascending()
+        );
+
+        Page<RestauranteEntity> pageResult = restaurantRepository.findAll(pageable);
+
+        List<Restaurant> content = pageResult.getContent().stream()
+                .map(restaurantEntityMapper::toRestaurante)
+                .toList();
+
+        return new PageModel<>(
+                content,
+                pageResult.getNumber(),
+                pageResult.getSize(),
+                pageResult.getTotalElements()
+        );
     }
 
     @Override
     public boolean platoBelongsRestaurant(Long idDish, Long idRestaurant) {
         return platoRepository.existsByIdPlatoAndIdRestaurante(idDish, idRestaurant);
     }
+
     @Override
     public boolean employeeBelongsRestaurant(Long idRestaurant) {
-        return restauranteRepository.findById(idRestaurant).isPresent();
+        return restaurantRepository.findById(idRestaurant).isPresent();
     }
-
 }

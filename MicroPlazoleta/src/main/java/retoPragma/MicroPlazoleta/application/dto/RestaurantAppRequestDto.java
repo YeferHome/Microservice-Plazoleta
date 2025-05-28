@@ -1,13 +1,11 @@
 package retoPragma.MicroPlazoleta.application.dto;
 
-import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
 
-@Setter
 @Getter
-@AllArgsConstructor
-public class RestauranteAppResponseDto {
+@Setter
+public class RestaurantAppRequestDto {
 
     private String nombreRestaurante;
     private Long nit;
@@ -16,4 +14,3 @@ public class RestauranteAppResponseDto {
     private String urlLogo;
     private Long idUsuario;
 }
-

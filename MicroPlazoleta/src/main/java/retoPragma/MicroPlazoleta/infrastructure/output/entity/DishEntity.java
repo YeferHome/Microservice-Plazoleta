@@ -9,23 +9,23 @@ import lombok.Setter;
 
 
 @Entity
-@Table(name = "plato")
+@Table(name = "dish")
 @NoArgsConstructor
 @AllArgsConstructor
 @Getter
 @Setter
-public class PlatoEntity {
+public class DishEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long idPlato;
+    private Long idDish;
 
-    private String nombrePlato;
-    private String descripcionPlato;
-    private Long precioPlato;
-    private String urlPlato;
-    private String categoriaPlato;
-    private Boolean estado;
-    private Long idRestaurante;
+    private String nameDish;
+    private String descriptionDish;
+    private Long priceDish;
+    private String urlDish;
+    private String categoryDish;
+    private Boolean estate;
+    private Long idRestaurant;
 
 }

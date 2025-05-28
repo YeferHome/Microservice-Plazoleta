@@ -5,19 +5,20 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import retoPragma.MicroPlazoleta.domain.model.Dish;
-import retoPragma.MicroPlazoleta.domain.util.exception.PlatoException.ExistecePlatoException;
-import retoPragma.MicroPlazoleta.domain.util.exception.PlatoException.NoPlatoException;
+import retoPragma.MicroPlazoleta.domain.model.PageModel;
+import retoPragma.MicroPlazoleta.domain.model.PageRequestModel;
 import retoPragma.MicroPlazoleta.domain.spi.IDishPersistencePort;
-import retoPragma.MicroPlazoleta.infrastructure.output.entity.PlatoEntity;
+import retoPragma.MicroPlazoleta.infrastructure.output.entity.DishEntity;
 import retoPragma.MicroPlazoleta.infrastructure.output.mapper.IPlatoEntityMapper;
 import retoPragma.MicroPlazoleta.infrastructure.output.repository.IPlatoRepository;
+import retoPragma.MicroPlazoleta.domain.util.exception.PlatoException.ExistecePlatoException;
+import retoPragma.MicroPlazoleta.domain.util.exception.PlatoException.NoPlatoException;
 
 import java.util.List;
-import java.util.stream.Collectors;
-
 
 @RequiredArgsConstructor
 public class DishJpaAdapter implements IDishPersistencePort {
+
     private final IPlatoRepository platoRepository;
     private final IPlatoEntityMapper platoEntityMapper;
 
@@ -27,48 +28,38 @@ public class DishJpaAdapter implements IDishPersistencePort {
     }
 
     @Override
-    public Dish findDishById(Long idPlato) {
-        return platoRepository.findById(idPlato)
+    public Dish findDishById(Long idDish) {
+        return platoRepository.findById(idDish)
                 .map(platoEntityMapper::toPlato)
                 .orElseThrow(NoPlatoException::new);
     }
+
     @Override
-    public Dish updateEstateDish(Long idPlato, boolean nuevoEstado, Long idUsuario) {
-        var platoEntity = platoRepository.findById(idPlato)
-                .orElseThrow(ExistecePlatoException::new) ;
+    public Dish updateEstateDish(Long idDish, boolean newState, Long idUser) {
+        var platoEntity = platoRepository.findById(idDish)
+                .orElseThrow(ExistecePlatoException::new);
 
-
-        platoEntity.setEstado(nuevoEstado);
-
-
+        platoEntity.setEstate(newState);
         platoRepository.save(platoEntity);
-
 
         return platoEntityMapper.toPlato(platoEntity);
     }
 
     @Override
-    public List<Dish> findByRestaurantAndCategory(Long idRestaurante, String categoria, int page, int size) {
-        Pageable pageable = PageRequest.of(page, size);
-        Page<PlatoEntity> pageResult = platoRepository.findAllByIdRestauranteAndCategoriaPlato(
-                idRestaurante, categoria, pageable
-        );
+    public PageModel<Dish> findDishesByRestaurantAndOptionalCategory(Long idRestaurant, String category, PageRequestModel pageRequestModel) {
+        Pageable pageable = PageRequest.of(pageRequestModel.getPage(), pageRequestModel.getSize());
 
-        return pageResult.getContent()
-                .stream()
+        Page<DishEntity> pageResult;
+        if (category != null && !category.isBlank()) {
+            pageResult = platoRepository.findAllByIdRestauranteAndCategoriaPlato(idRestaurant, category, pageable);
+        } else {
+            pageResult = platoRepository.findAllByIdRestaurante(idRestaurant, pageable);
+        }
+
+        List<Dish> content = pageResult.getContent().stream()
                 .map(platoEntityMapper::toPlato)
-                .collect(Collectors.toList());
-    }
+                .toList();
 
-
-    @Override
-    public List<Dish> findByRestaurant(Long idRestaurante, int page, int size) {
-        Pageable pageable = PageRequest.of(page, size);
-        Page<PlatoEntity> pageResult = platoRepository.findAllByIdRestaurante(idRestaurante, pageable);
-
-        return pageResult.getContent()
-                .stream()
-                .map(platoEntityMapper::toPlato)
-                .collect(Collectors.toList());
+        return new PageModel<>(content, pageResult.getNumber(), pageResult.getSize(), pageResult.getTotalElements());
     }
 }

@@ -7,8 +7,7 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.springframework.http.ResponseEntity;
 import retoPragma.MicroPlazoleta.application.dto.*;
-import retoPragma.MicroPlazoleta.application.dto.DishAppRequestDto;
-import retoPragma.MicroPlazoleta.application.handler.IPlatoAppHandler;
+import retoPragma.MicroPlazoleta.application.handler.IDishAppHandler;
 
 import java.util.List;
 
@@ -18,10 +17,10 @@ import static org.mockito.Mockito.*;
 class DishAppRestControllerTest {
 
     @Mock
-    private IPlatoAppHandler platoAppHandler;
+    private IDishAppHandler platoAppHandler;
 
     @InjectMocks
-    private PlatoAppRestController platoAppRestController;
+    private DishAppRestController dishAppRestController;
 
     @BeforeEach
     void setUp() {
@@ -32,11 +31,11 @@ class DishAppRestControllerTest {
     void savePlatoInPlatoApp() {
         DishAppRequestDto requestDto = mock(DishAppRequestDto.class);
 
-        doNothing().when(platoAppHandler).savePlatoInPlatoApp(requestDto);
+        doNothing().when(platoAppHandler).saveDishInDishApp(requestDto);
 
-        ResponseEntity<Void> response = platoAppRestController.savePlatoInPlatoApp(requestDto);
+        ResponseEntity<Void> response = dishAppRestController.saveDishInDishApp(requestDto);
 
-        verify(platoAppHandler, times(1)).savePlatoInPlatoApp(requestDto);
+        verify(platoAppHandler, times(1)).saveDishInDishApp(requestDto);
         assertEquals(201, response.getStatusCodeValue());
         assertNull(response.getBody());
     }
@@ -45,13 +44,13 @@ class DishAppRestControllerTest {
     void updatePlatoInPlatoApp() {
         Long idPlato = 1L;
         DishUpdateRequestDto requestDto = mock(DishUpdateRequestDto.class);
-        PlatoUpdateResponseDto responseDto = mock(PlatoUpdateResponseDto.class);
+        DishUpdateResponseDto responseDto = mock(DishUpdateResponseDto.class);
 
-        when(platoAppHandler.updatePlatoInPlatoApp(idPlato, requestDto)).thenReturn(responseDto);
+        when(platoAppHandler.updateDishInDishApp(idPlato, requestDto)).thenReturn(responseDto);
 
-        ResponseEntity<PlatoUpdateResponseDto> response = platoAppRestController.updatePlatoInPlatoApp(idPlato, requestDto);
+        ResponseEntity<DishUpdateResponseDto> response = dishAppRestController.updateDishInDishApp(idPlato, requestDto);
 
-        verify(platoAppHandler, times(1)).updatePlatoInPlatoApp(idPlato, requestDto);
+        verify(platoAppHandler, times(1)).updateDishInDishApp(idPlato, requestDto);
         assertEquals(200, response.getStatusCodeValue());
         assertEquals(responseDto, response.getBody());
     }
@@ -62,13 +61,13 @@ class DishAppRestControllerTest {
         DishUpdateEstateRequestDto requestDto = mock(DishUpdateEstateRequestDto.class);
         when(requestDto.isEstado()).thenReturn(true);
 
-        PlatoUpdateEstadoResponseDto responseDto = new PlatoUpdateEstadoResponseDto(true);
+        DishUpdateEstateResponseDto responseDto = new DishUpdateEstateResponseDto(true);
 
-        when(platoAppHandler.updateEstadoPlatoInPlatoApp(idPlato, true)).thenReturn(responseDto);
+        when(platoAppHandler.updateEstateDishInDishApp(idPlato, true)).thenReturn(responseDto);
 
-        ResponseEntity<PlatoUpdateEstadoResponseDto> response = platoAppRestController.actualizarEstadoPlato(idPlato, requestDto);
+        ResponseEntity<DishUpdateEstateResponseDto> response = dishAppRestController.updateEstateDish(idPlato, requestDto);
 
-        verify(platoAppHandler, times(1)).updateEstadoPlatoInPlatoApp(idPlato, true);
+        verify(platoAppHandler, times(1)).updateEstateDishInDishApp(idPlato, true);
         assertEquals(200, response.getStatusCodeValue());
         assertNotNull(response.getBody());
         assertTrue(response.getBody().isEstado());
@@ -81,17 +80,21 @@ class DishAppRestControllerTest {
         int page = 0;
         int size = 10;
 
-        List<PlatoAppResponseDto> responseList = List.of(
-                new PlatoAppResponseDto("Plato1", "Desc1", 100L, "url1", "cat1", idRestaurante, 1L),
-                new PlatoAppResponseDto("Plato2", "Desc2", 200L, "url2", "cat2", idRestaurante, 2L)
+        List<DishAppResponseDto> responseList = List.of(
+                new DishAppResponseDto("Plato1", "Desc1", 100L, "url1", "cat1", idRestaurante, 1L),
+                new DishAppResponseDto("Plato2", "Desc2", 200L, "url2", "cat2", idRestaurante, 2L)
         );
 
-        when(platoAppHandler.listPlatosMenu(idRestaurante, categoria, page, size)).thenReturn(responseList);
+        PageResponseDto<DishAppResponseDto> pageResponse = new PageResponseDto<>(responseList, page, size, responseList.size());
 
-        ResponseEntity<List<PlatoAppResponseDto>> response = platoAppRestController.getMenuRestaurante(idRestaurante, categoria, page, size);
+        when(platoAppHandler.listDishMenu(idRestaurante, categoria, page, size)).thenReturn(pageResponse);
 
-        verify(platoAppHandler, times(1)).listPlatosMenu(idRestaurante, categoria, page, size);
+        ResponseEntity<PageResponseDto<DishAppResponseDto>> response = dishAppRestController.getMenuRestaurant(idRestaurante, categoria, page, size);
+
+        verify(platoAppHandler, times(1)).listDishMenu(idRestaurante, categoria, page, size);
         assertEquals(200, response.getStatusCodeValue());
-        assertEquals(responseList, response.getBody());
+        assertNotNull(response.getBody());
+        assertEquals(2, response.getBody().getContent().size());
+        assertEquals("Plato1", response.getBody().getContent().get(0).getNombrePlato());
     }
 }

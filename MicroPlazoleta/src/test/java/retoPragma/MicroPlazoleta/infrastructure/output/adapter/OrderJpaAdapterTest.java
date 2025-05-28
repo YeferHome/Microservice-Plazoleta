@@ -5,12 +5,16 @@ import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentMatchers;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import retoPragma.MicroPlazoleta.domain.model.Order;
+import retoPragma.MicroPlazoleta.domain.model.PageModel;
+import retoPragma.MicroPlazoleta.domain.model.PageRequestModel;
 import retoPragma.MicroPlazoleta.domain.util.pedidoUtil.EstateOrder;
-import retoPragma.MicroPlazoleta.infrastructure.output.entity.PedidoEntity;
-import retoPragma.MicroPlazoleta.infrastructure.output.entity.PedidoItemEntity;
+import retoPragma.MicroPlazoleta.infrastructure.output.entity.OrderEntity;
+import retoPragma.MicroPlazoleta.infrastructure.output.entity.OrderItemEntity;
 import retoPragma.MicroPlazoleta.infrastructure.output.mapper.IPedidoEntityMapper;
-import retoPragma.MicroPlazoleta.infrastructure.output.repository.IPedidoRepository;
+import retoPragma.MicroPlazoleta.infrastructure.output.repository.IOrderRepository;
 
 import java.util.List;
 
@@ -19,13 +23,13 @@ import static org.mockito.Mockito.*;
 
 class OrderJpaAdapterTest {
 
-    private IPedidoRepository pedidoRepository;
+    private IOrderRepository pedidoRepository;
     private IPedidoEntityMapper pedidoEntityMapper;
     private OrderJpaAdapter pedidoJpaAdapter;
 
     @BeforeEach
     void setUp() {
-        pedidoRepository = mock(IPedidoRepository.class);
+        pedidoRepository = mock(IOrderRepository.class);
         pedidoEntityMapper = mock(IPedidoEntityMapper.class);
         pedidoJpaAdapter = new OrderJpaAdapter(pedidoRepository, pedidoEntityMapper);
     }
@@ -33,29 +37,24 @@ class OrderJpaAdapterTest {
     @Test
     void savePedido() {
         Order order = mock(Order.class);
-        PedidoEntity pedidoEntity = new PedidoEntity();
-        PedidoEntity pedidoEntityWithItems = new PedidoEntity();
-        PedidoItemEntity itemEntity = new PedidoItemEntity();
-        pedidoEntityWithItems.setItems(List.of(itemEntity));
+        OrderEntity orderEntityWithItems = new OrderEntity();
+        OrderItemEntity itemEntity = new OrderItemEntity();
+        orderEntityWithItems.setItems(List.of(itemEntity));
 
-        PedidoEntity savedPedidoEntity = new PedidoEntity();
+        OrderEntity savedOrderEntity = new OrderEntity();
         Order savedOrder = mock(Order.class);
 
-        // Setup mocks
-        when(pedidoEntityMapper.toPedidoEntity(order)).thenReturn(pedidoEntityWithItems);
-        when(pedidoRepository.save(pedidoEntityWithItems)).thenReturn(savedPedidoEntity);
-        when(pedidoEntityMapper.toPedido(savedPedidoEntity)).thenReturn(savedOrder);
+        when(pedidoEntityMapper.toPedidoEntity(order)).thenReturn(orderEntityWithItems);
+        when(pedidoRepository.save(orderEntityWithItems)).thenReturn(savedOrderEntity);
+        when(pedidoEntityMapper.toPedido(savedOrderEntity)).thenReturn(savedOrder);
 
-        // Execute
         Order result = pedidoJpaAdapter.saveOrder(order);
 
-        // Verify que el pedido fue asignado a los items
-        assertEquals(pedidoEntityWithItems, itemEntity.getPedido());
+        assertEquals(orderEntityWithItems, itemEntity.getOrder());
 
-        // Verificaciones
         verify(pedidoEntityMapper).toPedidoEntity(order);
-        verify(pedidoRepository).save(pedidoEntityWithItems);
-        verify(pedidoEntityMapper).toPedido(savedPedidoEntity);
+        verify(pedidoRepository).save(orderEntityWithItems);
+        verify(pedidoEntityMapper).toPedido(savedOrderEntity);
 
         assertEquals(savedOrder, result);
     }
@@ -63,16 +62,14 @@ class OrderJpaAdapterTest {
     @Test
     void usuarioTienePedidoActivo() {
         Long idUsuario = 1L;
-        when(pedidoRepository.existsByIdClienteAndEstadoIn(
-                eq(idUsuario),
-                ArgumentMatchers.anyList()))
+        when(pedidoRepository.existsByIdClientAndEstateIn(
+                eq(idUsuario), ArgumentMatchers.anyList()))
                 .thenReturn(true);
 
         boolean tienePedidoActivo = pedidoJpaAdapter.userHaveOrderActive(idUsuario);
 
-        verify(pedidoRepository).existsByIdClienteAndEstadoIn(
-                eq(idUsuario),
-                ArgumentMatchers.anyList());
+        verify(pedidoRepository).existsByIdClientAndEstateIn(
+                eq(idUsuario), ArgumentMatchers.anyList());
 
         assertTrue(tienePedidoActivo);
     }
@@ -81,23 +78,23 @@ class OrderJpaAdapterTest {
     void findPedidosPorEstadoYRestaurante() {
         EstateOrder estado = EstateOrder.PENDIENTE;
         Long restauranteId = 1L;
-        int page = 0;
-        int size = 5;
+        PageRequestModel pageRequestModel = new PageRequestModel(0, 5);
+        Pageable pageable = PageRequest.of(pageRequestModel.getPage(), pageRequestModel.getSize());
 
-        PedidoEntity pedidoEntity = new PedidoEntity();
-        List<PedidoEntity> pedidoEntityList = List.of(pedidoEntity);
-        Page<PedidoEntity> pedidoEntityPage = new PageImpl<>(pedidoEntityList);
+        OrderEntity orderEntity = new OrderEntity();
+        List<OrderEntity> orderEntityList = List.of(orderEntity);
+        Page<OrderEntity> pedidoEntityPage = new PageImpl<>(orderEntityList);
 
         Order order = mock(Order.class);
 
-        when(pedidoRepository.findByEstadoAndIdRestaurante(estado, restauranteId, page, size))
+        when(pedidoRepository.findByEstateAndIdRestaurant(estado, restauranteId, pageable))
                 .thenReturn(pedidoEntityPage);
-        when(pedidoEntityMapper.toPedido(pedidoEntity)).thenReturn(order);
+        when(pedidoEntityMapper.toPedido(orderEntity)).thenReturn(order);
 
-        Page<Order> resultPage = pedidoJpaAdapter.findOrderByStateRestaurant(estado, restauranteId, page, size);
+        PageModel<Order> resultPage = pedidoJpaAdapter.findOrderByStateRestaurant(estado, restauranteId, pageRequestModel);
 
-        verify(pedidoRepository).findByEstadoAndIdRestaurante(estado, restauranteId, page, size);
-        verify(pedidoEntityMapper).toPedido(pedidoEntity);
+        verify(pedidoRepository).findByEstateAndIdRestaurant(estado, restauranteId, pageable);
+        verify(pedidoEntityMapper).toPedido(orderEntity);
 
         assertNotNull(resultPage);
         assertEquals(1, resultPage.getTotalElements());

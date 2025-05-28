@@ -16,19 +16,19 @@ import static retoPragma.MicroPlazoleta.domain.util.restaurantUtil.RestaurantCon
 public class RestaurantValidationUtil {
 
     private final IRestaurantPersistencePort restaurantPersistencePort;
-    private final IUserServicePort usuarioServicePort;
+    private final IUserServicePort userServicePort;
 
 
 
-    public RestaurantValidationUtil(IRestaurantPersistencePort restaurantPersistencePort, IUserServicePort usuarioServicePort) {
+    public RestaurantValidationUtil(IRestaurantPersistencePort restaurantPersistencePort, IUserServicePort userServicePort) {
         this.restaurantPersistencePort = restaurantPersistencePort;
-        this.usuarioServicePort = usuarioServicePort;
+        this.userServicePort = userServicePort;
     }
 
     public void validateRestaurant(Restaurant restaurant) {
 
 
-        String rol = usuarioServicePort.obtainRolUser(restaurant.getIdUsuario());
+        String rol = userServicePort.obtainRolUser(restaurant.getIdUser());
         if (!PROPIETARIO.equalsIgnoreCase(rol)) {
             throw new NoOwnerException();
         }
@@ -36,11 +36,11 @@ public class RestaurantValidationUtil {
         if (restaurant.getNit() == null || restaurant.getNit() <= DOCUMENTO_POSITIVO) {
             throw new DocumentException();
         }
-        if (!esTelefonoRestauranteValido(restaurant.getTelefonoRestaurante())) {
+        if (!esTelefonoRestauranteValido(restaurant.getPhoneRestaurant())) {
             throw new PhoneException();
         }
 
-        if (!esNombreRestauranteValido(restaurant.getNombreRestaurante())) {
+        if (!esNombreRestauranteValido(restaurant.getNameRestaurant())) {
             throw new NameRestaurantException();
         }
 

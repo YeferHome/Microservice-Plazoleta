@@ -9,23 +9,23 @@ import retoPragma.MicroPlazoleta.domain.util.pedidoUtil.EstateOrder;
 import java.util.List;
 
 @Entity
-@Table(name = "pedido")
+@Table(name = "order")
 @NoArgsConstructor
 @AllArgsConstructor
 @Getter
 @Setter
-public class PedidoEntity {
+public class OrderEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long idPedido;
+    private Long idOrder;
 
-    private Long idCliente;
-    private Long idRestaurante;
+    private Long idClient;
+    private Long idRestaurant;
 
     @Enumerated(EnumType.STRING)
-    private EstateOrder estado;
+    private EstateOrder estate;
 
-    @OneToMany(mappedBy = "pedido", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<PedidoItemEntity> items;
+    @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<OrderItemEntity> items;
 }

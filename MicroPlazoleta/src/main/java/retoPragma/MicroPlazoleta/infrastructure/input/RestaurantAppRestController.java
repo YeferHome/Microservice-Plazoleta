@@ -6,27 +6,27 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import retoPragma.MicroPlazoleta.application.dto.PedidoRequestDto;
-import retoPragma.MicroPlazoleta.application.dto.PedidoResponseDto;
-import retoPragma.MicroPlazoleta.application.handler.IPedidoAppHandler;
+import retoPragma.MicroPlazoleta.application.dto.RestaurantAppRequestDto;
+import retoPragma.MicroPlazoleta.application.dto.RestaurantSummaryResponseDto;
+import retoPragma.MicroPlazoleta.application.dto.PageResponseDto;
+import retoPragma.MicroPlazoleta.application.handler.IRestaurantAppHandler;
 import retoPragma.MicroPlazoleta.domain.model.Order;
-import retoPragma.MicroPlazoleta.domain.util.pedidoUtil.EstateOrder;
 
 @RestController
-@RequestMapping("/pedidoApp")
+@RequestMapping("/restaurantApp")
 @RequiredArgsConstructor
-public class PedidoAppRestController {
+public class RestaurantAppRestController {
 
-    private final IPedidoAppHandler pedidoAppHandler;
+    private final IRestaurantAppHandler restaurantAppHandler;
 
 
-    @Operation(summary = "Crear pedido en la base de datos")
+
+    @Operation(summary = "Crear restaurante en la base de datos")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Pedido creado con exito",
+            @ApiResponse(responseCode = "200", description = "restaurante creado con exito",
                     content = {
                             @Content(mediaType = "application/json",
                                     schema = @Schema(implementation = Order.class))
@@ -35,16 +35,16 @@ public class PedidoAppRestController {
             @ApiResponse(responseCode = "400", description = "Error de response", content = @Content)
 
     })
-    @PostMapping("/savePedido")
-    public ResponseEntity<PedidoResponseDto> savePedido(@RequestBody PedidoRequestDto pedidoRequestDto) {
-        PedidoResponseDto pedidoResponseDto = pedidoAppHandler.savePedido(pedidoRequestDto);
-
-        return ResponseEntity.status(HttpStatus.CREATED).body(pedidoResponseDto);
+    @PostMapping("/saveRestaurant")
+    public ResponseEntity<Void> saveRestaurantInRestaurantApp(@RequestBody RestaurantAppRequestDto restaurantAppRequestDto) {
+        restaurantAppHandler.saveRestaurantInRestaurantApp(restaurantAppRequestDto);
+        return ResponseEntity.status(HttpStatus.CREATED).build();
     }
 
-    @Operation(summary = "Pedido actualizado en la base de datos")
+
+    @Operation(summary = "Listar restaurante en la base de datos")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Pedido Actualizado con exito",
+            @ApiResponse(responseCode = "200", description = "listar restaurante con exito",
                     content = {
                             @Content(mediaType = "application/json",
                                     schema = @Schema(implementation = Order.class))
@@ -53,16 +53,12 @@ public class PedidoAppRestController {
             @ApiResponse(responseCode = "400", description = "Error de response", content = @Content)
 
     })
-
-    @GetMapping("/estado")
-    public ResponseEntity<Page<Order>> getPedidosPorEstado(
-            @RequestParam Long restauranteId,
-            @RequestParam EstateOrder estado,
-            @RequestParam  int page,
-            @RequestParam int size) {
-
-        Page<Order> pedidos = pedidoAppHandler.getPedidosPorEstado(restauranteId, estado, page, size);
-
-        return ResponseEntity.ok(pedidos);
+    @GetMapping("/all")
+    public ResponseEntity<PageResponseDto<RestaurantSummaryResponseDto>> listRestaurants(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size
+    ) {
+        PageResponseDto<RestaurantSummaryResponseDto> response = restaurantAppHandler.listRestaurants(page, size);
+        return ResponseEntity.ok(response);
     }
 }

@@ -11,9 +11,10 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
-import retoPragma.MicroPlazoleta.application.dto.RestauranteAppRequestDto;
-import retoPragma.MicroPlazoleta.application.dto.RestauranteResumenResponseDto;
-import retoPragma.MicroPlazoleta.application.handler.IRestauranteAppHandler;
+import retoPragma.MicroPlazoleta.application.dto.RestaurantAppRequestDto;
+import retoPragma.MicroPlazoleta.application.dto.RestaurantSummaryResponseDto;
+import retoPragma.MicroPlazoleta.application.dto.PageResponseDto;
+import retoPragma.MicroPlazoleta.application.handler.IRestaurantAppHandler;
 
 import java.util.List;
 
@@ -23,55 +24,56 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@WebMvcTest(RestauranteAppRestController.class)
+@WebMvcTest(RestaurantAppRestController.class)
 @AutoConfigureMockMvc(addFilters = false)
-public class RestaurantAppRestControllerTest {
+class RestaurantAppRestControllerTest {
 
     @Autowired
     private MockMvc mockMvc;
 
     @MockBean
-    private IRestauranteAppHandler restauranteAppHandler;
+    private IRestaurantAppHandler restauranteAppHandler;
 
     private ObjectMapper objectMapper;
 
-    private RestauranteAppRequestDto restauranteAppRequestDto;
-    private List<RestauranteResumenResponseDto> resumenResponseList;
+    private RestaurantAppRequestDto restaurantAppRequestDto;
+    private PageResponseDto<RestaurantSummaryResponseDto> resumenResponseDto;
 
     @BeforeEach
     void setUp() {
         objectMapper = new ObjectMapper();
 
-        restauranteAppRequestDto = new RestauranteAppRequestDto();
-        // Configura aquí los campos necesarios para el requestDto
-        // Ejemplo:
-        // restauranteAppRequestDto.setNombre("Restaurante Prueba");
+        restaurantAppRequestDto = new RestaurantAppRequestDto();
 
-        RestauranteResumenResponseDto resumen = new RestauranteResumenResponseDto();
-        // Configura campos necesarios en resumen, por ejemplo nombre, id, etc.
-        // resumen.setNombre("Restaurante 1");
+        RestaurantSummaryResponseDto resumen1 = new RestaurantSummaryResponseDto("Resto 1", "logo1.png");
+        RestaurantSummaryResponseDto resumen2 = new RestaurantSummaryResponseDto("Resto 2", "logo2.png");
 
-        resumenResponseList = List.of(resumen);
+        resumenResponseDto = new PageResponseDto<>(
+                List.of(resumen1, resumen2),
+                0,  // pageNumber
+                10, // pageSize
+                2L  // totalElements
+        );
     }
 
     @Test
     @WithMockUser
     void saveRestauranteInRestauranteApp() throws Exception {
-        Mockito.doNothing().when(restauranteAppHandler).saveRestauranteInRestauranteApp(any(RestauranteAppRequestDto.class));
+        Mockito.doNothing().when(restauranteAppHandler).saveRestaurantInRestaurantApp(any(RestaurantAppRequestDto.class));
 
-        mockMvc.perform(post("/restauranteApp/saveRestaurante")
+        mockMvc.perform(post("/restaurantApp/saveRestaurant")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(restauranteAppRequestDto)))
+                        .content(objectMapper.writeValueAsString(restaurantAppRequestDto)))
                 .andExpect(status().isCreated());
     }
 
     @Test
     @WithMockUser
     void listRestaurantes() throws Exception {
-        Mockito.when(restauranteAppHandler.listRestaurantes(anyInt(), anyInt()))
-                .thenReturn(resumenResponseList);
+        Mockito.when(restauranteAppHandler.listRestaurants(anyInt(), anyInt()))
+                .thenReturn(resumenResponseDto);
 
-        mockMvc.perform(get("/restauranteApp/all")
+        mockMvc.perform(get("/restaurantApp/all")
                         .param("page", "0")
                         .param("size", "10"))
                 .andExpect(status().isOk());

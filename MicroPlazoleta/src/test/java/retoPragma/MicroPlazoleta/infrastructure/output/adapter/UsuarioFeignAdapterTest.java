@@ -23,13 +23,10 @@ class UsuarioFeignAdapterTest {
         Long userId = 123L;
         String expectedRole = "ADMIN";
 
-        // Configurar el mock para devolver el role esperado
         when(usuarioFeignClient.obtenerRol(userId)).thenReturn(expectedRole);
 
-        // Ejecutar el método a testear
         String actualRole = usuarioFeignAdapter.obtainRolUser(userId);
 
-        // Verificar interacción y resultado
         verify(usuarioFeignClient, times(1)).obtenerRol(userId);
         assertEquals(expectedRole, actualRole);
     }

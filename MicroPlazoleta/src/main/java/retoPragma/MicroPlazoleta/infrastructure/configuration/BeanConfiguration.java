@@ -8,7 +8,7 @@ import retoPragma.MicroPlazoleta.domain.UseCase.DishUseCase;
 import retoPragma.MicroPlazoleta.domain.UseCase.RestaurantUseCase;
 import retoPragma.MicroPlazoleta.domain.api.IOrderServicePort;
 import retoPragma.MicroPlazoleta.domain.api.IDishServicePort;
-import retoPragma.MicroPlazoleta.domain.api.IRestauranteServicePort;
+import retoPragma.MicroPlazoleta.domain.api.IRestaurantServicePort;
 import retoPragma.MicroPlazoleta.domain.api.IUserServicePort;
 import retoPragma.MicroPlazoleta.domain.spi.IOrderPersistencePort;
 import retoPragma.MicroPlazoleta.domain.spi.IDishPersistencePort;
@@ -19,7 +19,7 @@ import retoPragma.MicroPlazoleta.infrastructure.output.adapter.RestaurantJpaAdap
 import retoPragma.MicroPlazoleta.infrastructure.output.mapper.IPedidoEntityMapper;
 import retoPragma.MicroPlazoleta.infrastructure.output.mapper.IPlatoEntityMapper;
 import retoPragma.MicroPlazoleta.infrastructure.output.mapper.IRestauranteEntityMapper;
-import retoPragma.MicroPlazoleta.infrastructure.output.repository.IPedidoRepository;
+import retoPragma.MicroPlazoleta.infrastructure.output.repository.IOrderRepository;
 import retoPragma.MicroPlazoleta.infrastructure.output.repository.IPlatoRepository;
 import retoPragma.MicroPlazoleta.infrastructure.output.repository.IRestauranteRepository;
 
@@ -32,7 +32,7 @@ public class BeanConfiguration {
     private final IRestauranteRepository restauranteRepository;
     private final IRestauranteEntityMapper restauranteEntityMapper;
     private final IUserServicePort usuarioServicePort;
-    private final IPedidoRepository pedidoRepository;
+    private final IOrderRepository pedidoRepository;
     private final IPedidoEntityMapper pedidoEntityMapper;
 
     @Bean
@@ -51,7 +51,7 @@ public class BeanConfiguration {
     }
 
     @Bean
-    public IRestauranteServicePort restauranteServicePort() {
+    public IRestaurantServicePort restauranteServicePort() {
         return new RestaurantUseCase(restaurantePersistencePort(), usuarioServicePort);
     }
 

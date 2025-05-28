@@ -1,4 +1,5 @@
 package retoPragma.MicroPlazoleta.application.dto;
+
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
@@ -6,7 +7,8 @@ import lombok.Setter;
 @Getter
 @Setter
 @AllArgsConstructor
-public class PlatoUpdateEstadoResponseDto {
+public class OrderItemResponseDto {
 
-    private boolean estado;
+    private Long idPlato;
+    private int cantidad;
 }

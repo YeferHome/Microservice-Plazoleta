@@ -4,42 +4,42 @@ package retoPragma.MicroPlazoleta.domain.model;
 public class Restaurant {
 
 
-    private Long idRestaurante;
-    private String nombreRestaurante;
+    private Long idRestaurant;
+    private String nameRestaurant;
     private Long nit;
-    private String direccion;
-    private String telefonoRestaurante;
+    private String address;
+    private String phoneRestaurant;
     private String urlLogo;
-    private Long idUsuario;
+    private Long idUser;
 
 
     public Restaurant() {
     }
 
-    public Restaurant(Long idRestaurante, String nombreRestaurante, Long nit, String direccion, String telefonoRestaurante, String urlLogo, Long idUsuario) {
-        this.idRestaurante = idRestaurante;
-        this.nombreRestaurante = nombreRestaurante;
+    public Restaurant(Long idRestaurant, String nameRestaurant, Long nit, String address, String phoneRestaurant, String urlLogo, Long idUser) {
+        this.idRestaurant = idRestaurant;
+        this.nameRestaurant = nameRestaurant;
         this.nit = nit;
-        this.direccion = direccion;
-        this.telefonoRestaurante = telefonoRestaurante;
+        this.address = address;
+        this.phoneRestaurant = phoneRestaurant;
         this.urlLogo = urlLogo;
-        this.idUsuario = idUsuario;
+        this.idUser = idUser;
     }
 
-    public Long getIdRestaurante() {
-        return idRestaurante;
+    public Long getIdRestaurant() {
+        return idRestaurant;
     }
 
-    public void setIdRestaurante(Long idRestaurante) {
-        this.idRestaurante = idRestaurante;
+    public void setIdRestaurant(Long idRestaurant) {
+        this.idRestaurant = idRestaurant;
     }
 
-    public String getNombreRestaurante() {
-        return nombreRestaurante;
+    public String getNameRestaurant() {
+        return nameRestaurant;
     }
 
-    public void setNombreRestaurante(String nombreRestaurante) {
-        this.nombreRestaurante = nombreRestaurante;
+    public void setNameRestaurant(String nameRestaurant) {
+        this.nameRestaurant = nameRestaurant;
     }
 
     public Long getNit() {
@@ -50,20 +50,20 @@ public class Restaurant {
         this.nit = nit;
     }
 
-    public String getDireccion() {
-        return direccion;
+    public String getAddress() {
+        return address;
     }
 
-    public void setDireccion(String direccion) {
-        this.direccion = direccion;
+    public void setAddress(String address) {
+        this.address = address;
     }
 
-    public String getTelefonoRestaurante() {
-        return telefonoRestaurante;
+    public String getPhoneRestaurant() {
+        return phoneRestaurant;
     }
 
-    public void setTelefonoRestaurante(String telefonoRestaurante) {
-        this.telefonoRestaurante = telefonoRestaurante;
+    public void setPhoneRestaurant(String phoneRestaurant) {
+        this.phoneRestaurant = phoneRestaurant;
     }
 
     public String getUrlLogo() {
@@ -74,11 +74,11 @@ public class Restaurant {
         this.urlLogo = urlLogo;
     }
 
-    public Long getIdUsuario() {
-        return idUsuario;
+    public Long getIdUser() {
+        return idUser;
     }
 
-    public void setIdUsuario(Long idUsuario) {
-        this.idUsuario = idUsuario;
+    public void setIdUser(Long idUser) {
+        this.idUser = idUser;
     }
 }

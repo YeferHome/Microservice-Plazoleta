@@ -2,10 +2,11 @@ package retoPragma.MicroPlazoleta.infrastructure.output.adapter;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.ArgumentMatchers;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
+import retoPragma.MicroPlazoleta.domain.model.PageModel;
+import retoPragma.MicroPlazoleta.domain.model.PageRequestModel;
 import retoPragma.MicroPlazoleta.domain.model.Restaurant;
 import retoPragma.MicroPlazoleta.domain.util.exception.RestaurantException.NoRetaurantExcepcion;
 import retoPragma.MicroPlazoleta.infrastructure.output.entity.RestauranteEntity;
@@ -78,26 +79,24 @@ class RestaurantJpaAdapterTest {
 
     @Test
     void findAllRestaurantsOrderedByName() {
-        int page = 0;
-        int size = 5;
-
         RestauranteEntity restauranteEntity = mock(RestauranteEntity.class);
         Restaurant restaurant = mock(Restaurant.class);
 
         List<RestauranteEntity> entities = List.of(restauranteEntity);
         Page<RestauranteEntity> pageResult = new PageImpl<>(entities);
 
-        when(restauranteRepository.findAll(ArgumentMatchers.any(Pageable.class))).thenReturn(pageResult);
+        when(restauranteRepository.findAll(any(Pageable.class))).thenReturn(pageResult);
         when(restauranteEntityMapper.toRestaurante(restauranteEntity)).thenReturn(restaurant);
 
-        List<Restaurant> result = restauranteJpaAdapter.findAllRestaurantsOrderedByName(page, size);
+        PageRequestModel pageRequestModel = new PageRequestModel(0, 5);
+        PageModel<Restaurant> result = restauranteJpaAdapter.findAllRestaurantsOrderedByName(pageRequestModel);
 
-        verify(restauranteRepository).findAll(ArgumentMatchers.any(Pageable.class));
+        verify(restauranteRepository).findAll(any(Pageable.class));
         verify(restauranteEntityMapper).toRestaurante(restauranteEntity);
 
         assertNotNull(result);
-        assertEquals(1, result.size());
-        assertEquals(restaurant, result.get(0));
+        assertEquals(1, result.getContent().size());
+        assertEquals(restaurant, result.getContent().get(0));
     }
 
     @Test

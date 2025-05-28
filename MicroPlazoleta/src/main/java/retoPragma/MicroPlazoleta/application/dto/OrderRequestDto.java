@@ -3,10 +3,12 @@ package retoPragma.MicroPlazoleta.application.dto;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.util.List;
+
 @Getter
 @Setter
-public class PedidoItemRequestDto {
-    private Long idPlato;
+public class OrderRequestDto {
+    private Long idCliente;
     private Long idRestaurante;
-    private int cantidad;
+    private List<OrderItemRequestDto> items;
 }

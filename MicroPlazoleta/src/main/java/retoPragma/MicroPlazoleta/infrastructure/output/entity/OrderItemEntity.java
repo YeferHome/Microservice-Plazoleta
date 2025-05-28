@@ -8,20 +8,20 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Entity
-@Table(name = "pedido_item")
+@Table(name = "order_item")
 @NoArgsConstructor
 @AllArgsConstructor
 @Getter
 @Setter
-public class PedidoItemEntity {
+public class OrderItemEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long idItem;
-    private Long idPlato;
-    private int cantidad;
+    private Long idDish;
+    private int amount;
 
     @ManyToOne
-    @JoinColumn(name = "pedido_id")
-    private PedidoEntity pedido;
+    @JoinColumn(name = "order_id")
+    private OrderEntity order;
 }

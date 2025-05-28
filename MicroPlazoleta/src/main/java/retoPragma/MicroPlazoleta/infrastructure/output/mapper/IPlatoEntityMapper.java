@@ -3,13 +3,13 @@ package retoPragma.MicroPlazoleta.infrastructure.output.mapper;
 import org.mapstruct.Mapper;
 import org.mapstruct.ReportingPolicy;
 import retoPragma.MicroPlazoleta.domain.model.Dish;
-import retoPragma.MicroPlazoleta.infrastructure.output.entity.PlatoEntity;
+import retoPragma.MicroPlazoleta.infrastructure.output.entity.DishEntity;
 
 @Mapper(componentModel = "spring",
         unmappedTargetPolicy = ReportingPolicy.IGNORE,
         unmappedSourcePolicy = ReportingPolicy.IGNORE)
 public interface IPlatoEntityMapper {
-    PlatoEntity toPlatoEntity(Dish dish);
+    DishEntity toPlatoEntity(Dish dish);
 
-    Dish toPlato(PlatoEntity platoEntity);
+    Dish toPlato(DishEntity dishEntity);
 }

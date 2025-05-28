@@ -3,12 +3,12 @@ package retoPragma.MicroPlazoleta.domain.UseCase;
 import retoPragma.MicroPlazoleta.domain.api.IDishServicePort;
 import retoPragma.MicroPlazoleta.domain.api.IUserServicePort;
 import retoPragma.MicroPlazoleta.domain.model.Dish;
+import retoPragma.MicroPlazoleta.domain.model.PageModel;
+import retoPragma.MicroPlazoleta.domain.model.PageRequestModel;
 import retoPragma.MicroPlazoleta.domain.spi.IDishPersistencePort;
 import retoPragma.MicroPlazoleta.domain.spi.IRestaurantPersistencePort;
 import retoPragma.MicroPlazoleta.domain.util.exception.PlatoException.ExistecePlatoException;
 import retoPragma.MicroPlazoleta.domain.util.platoUtil.DishValidationUtil;
-
-import java.util.List;
 
 public class DishUseCase implements IDishServicePort {
 
@@ -22,7 +22,6 @@ public class DishUseCase implements IDishServicePort {
 
     @Override
     public void saveDish(Dish dish) {
-
         dishValidationUtil.validateDish(dish);
         dish.setEstate(true);
         dishPersistencePort.saveDish(dish);
@@ -30,13 +29,11 @@ public class DishUseCase implements IDishServicePort {
 
     @Override
     public Dish updateDish(Long idDish, Dish dishModified, Long idUser) {
-
         dishValidationUtil.validateOwner(dishModified, idUser);
         dishValidationUtil.validateDish(dishModified);
         dishValidationUtil.validateDishExistent(idDish);
 
         Dish dish = dishPersistencePort.findDishById(idDish);
-
         if (dish == null) {
             throw new ExistecePlatoException();
         }
@@ -49,7 +46,6 @@ public class DishUseCase implements IDishServicePort {
 
     @Override
     public Dish updateEstateDish(Long idDish, boolean newEstate, Long idUser) {
-
         dishValidationUtil.validateDishExistent(idDish);
         dishValidationUtil.validateOwner(dishPersistencePort.findDishById(idDish), idUser);
 
@@ -60,12 +56,7 @@ public class DishUseCase implements IDishServicePort {
     }
 
     @Override
-    public List<Dish> getDishByRestaurant(Long idRestaurant, String category, int page, int size) {
-
-        if (category != null && !category.trim().isEmpty()) {
-            return dishPersistencePort.findByRestaurantAndCategory(idRestaurant, category, page, size);
-        } else {
-            return dishPersistencePort.findByRestaurant(idRestaurant, page, size);
-        }
+    public PageModel<Dish> getDishesByRestaurantAndOptionalCategory(Long idRestaurant, String category, PageRequestModel pageRequestModel) {
+        return dishPersistencePort.findDishesByRestaurantAndOptionalCategory(idRestaurant, category, pageRequestModel);
     }
 }

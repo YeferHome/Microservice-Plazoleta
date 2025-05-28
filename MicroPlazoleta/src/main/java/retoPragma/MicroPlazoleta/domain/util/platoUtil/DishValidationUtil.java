@@ -12,25 +12,25 @@ import static retoPragma.MicroPlazoleta.domain.util.platoUtil.PlatoConstants.PRO
 
 public class DishValidationUtil {
 
-        private final IUserServicePort usuarioServicePort;
-        private final IRestaurantPersistencePort restaurantePersistencePort;
-        private final IDishPersistencePort platoPersistencePort;
+        private final IUserServicePort userServicePort;
+        private final IRestaurantPersistencePort restaurantPersistencePort;
+        private final IDishPersistencePort dishPersistencePort;
 
 
-    public DishValidationUtil(IUserServicePort usuarioServicePort, IRestaurantPersistencePort restaurantePersistencePort, IDishPersistencePort platoPersistencePort) {
-        this.usuarioServicePort = usuarioServicePort;
-        this.restaurantePersistencePort = restaurantePersistencePort;
-        this.platoPersistencePort = platoPersistencePort;
+    public DishValidationUtil(IUserServicePort userServicePort, IRestaurantPersistencePort restaurantPersistencePort, IDishPersistencePort dishPersistencePort) {
+        this.userServicePort = userServicePort;
+        this.restaurantPersistencePort = restaurantPersistencePort;
+        this.dishPersistencePort = dishPersistencePort;
     }
 
     public void validateDish(Dish dish) {
 
-            Restaurant restaurant = restaurantePersistencePort.findRestaurantById(dish.getIdRestaurant());
+            Restaurant restaurant = restaurantPersistencePort.findRestaurantById(dish.getIdRestaurant());
             if (restaurant == null) {
                 throw new PlatoAssociatedException();
             }
 
-            if (!restaurant.getIdUsuario().equals(dish.getIdUser())) {
+            if (!restaurant.getIdUser().equals(dish.getIdUser())) {
                 throw new PlatoOwnerException();
             }
 
@@ -40,20 +40,20 @@ public class DishValidationUtil {
         }
 
     public void validateDishExistent(Long idPlato) {
-        Dish dish = platoPersistencePort.findDishById(idPlato);
+        Dish dish = dishPersistencePort.findDishById(idPlato);
         if (dish == null) {
             throw new ExistecePlatoException();
         }
     }
 
-    public void validateOwner(Dish dish, Long idUsuarioToken) {
+    public void validateOwner(Dish dish, Long idUserToken) {
 
-        String rolUsuario = usuarioServicePort.obtainRolUser(dish.getIdUser());
-        if (!PROPIETARIO.equalsIgnoreCase(rolUsuario)) {
+        String rolUser = userServicePort.obtainRolUser(dish.getIdUser());
+        if (!PROPIETARIO.equalsIgnoreCase(rolUser)) {
             throw new NoPermissionCreateException();
         }
-        Restaurant restaurant = restaurantePersistencePort.findRestaurantById(dish.getIdRestaurant());
-        if (!restaurant.getIdUsuario().equals(idUsuarioToken)) {
+        Restaurant restaurant = restaurantPersistencePort.findRestaurantById(dish.getIdRestaurant());
+        if (!restaurant.getIdUser().equals(idUserToken)) {
             throw new OwnerNoRestaurantException();
         }
     }

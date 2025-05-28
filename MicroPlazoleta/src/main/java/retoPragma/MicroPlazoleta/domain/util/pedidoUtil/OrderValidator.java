@@ -13,11 +13,11 @@ public class OrderValidator {
 
     private final IRestaurantPersistencePort restaurantePersistencePort;
 
-    public OrderValidator(IUserServicePort usuarioServicePort, IOrderPersistencePort pedidoPersistencePort, IRestaurantPersistencePort restaurantePersistencePort) {
-        this.restaurantePersistencePort = restaurantePersistencePort;
+    public OrderValidator(IUserServicePort userServicePort, IOrderPersistencePort orderPersistencePort, IRestaurantPersistencePort restaurantPersistencePort) {
+        this.restaurantePersistencePort = restaurantPersistencePort;
     }
 
-    public void validarPedido(Order order) {
+    public void validateOrder(Order order) {
         if (order == null) {
             throw new NoNullExcepcion();
         }
@@ -43,10 +43,10 @@ public class OrderValidator {
                 throw new CantidadMinimaItemException();
             }
 
-            boolean pertenece = restaurantePersistencePort
+            boolean belongs = restaurantePersistencePort
                     .platoBelongsRestaurant(item.getIdDish(), order.getIdRestaurant());
 
-            if (!pertenece) {
+            if (!belongs) {
                 throw new PlatoNoPerteneceARestauranteException();
             }
         }

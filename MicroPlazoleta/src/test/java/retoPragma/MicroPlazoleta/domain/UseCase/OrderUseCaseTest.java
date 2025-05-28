@@ -3,11 +3,11 @@ package retoPragma.MicroPlazoleta.domain.UseCase;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.*;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
 import retoPragma.MicroPlazoleta.domain.api.IUserServicePort;
 import retoPragma.MicroPlazoleta.domain.model.Order;
 import retoPragma.MicroPlazoleta.domain.model.OrderItem;
+import retoPragma.MicroPlazoleta.domain.model.PageModel;
+import retoPragma.MicroPlazoleta.domain.model.PageRequestModel;
 import retoPragma.MicroPlazoleta.domain.spi.IOrderPersistencePort;
 import retoPragma.MicroPlazoleta.domain.spi.IRestaurantPersistencePort;
 import retoPragma.MicroPlazoleta.domain.util.exception.PedidoException.*;
@@ -85,12 +85,14 @@ class OrderUseCaseTest {
         int page = 0;
         int size = 5;
 
-        Page<Order> pageResultado = new PageImpl<>(List.of(order));
+        List<Order> orders = List.of(order);
+        PageModel<Order> pageResultado = new PageModel<>(orders, page, size, orders.size());
 
         when(restaurantePersistencePort.employeeBelongsRestaurant(restauranteId)).thenReturn(true);
-        when(pedidoPersistencePort.findOrderByStateRestaurant(estado, restauranteId, page, size)).thenReturn(pageResultado);
+        when(pedidoPersistencePort.findOrderByStateRestaurant(estado, restauranteId, new PageRequestModel(page, size)))
+                .thenReturn(pageResultado);
 
-        Page<Order> resultado = orderUseCase.getOrderByStates(restauranteId, estado, page, size);
+        PageModel<Order> resultado = orderUseCase.getOrderByStates(restauranteId, estado, new PageRequestModel(page, size));
 
         assertEquals(1, resultado.getTotalElements());
     }
@@ -100,6 +102,6 @@ class OrderUseCaseTest {
         when(restaurantePersistencePort.employeeBelongsRestaurant(10L)).thenReturn(false);
 
         assertThrows(EmpleadoPerteneceRestauranteException.class, () ->
-                orderUseCase.getOrderByStates(10L, EstateOrder.PENDIENTE, 0, 5));
+                orderUseCase.getOrderByStates(10L, EstateOrder.PENDIENTE, new PageRequestModel(0, 5)));
     }
 }

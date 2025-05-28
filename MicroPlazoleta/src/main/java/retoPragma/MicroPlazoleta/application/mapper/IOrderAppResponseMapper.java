@@ -2,18 +2,18 @@ package retoPragma.MicroPlazoleta.application.mapper;
 
 import org.mapstruct.Mapper;
 import org.mapstruct.ReportingPolicy;
-import retoPragma.MicroPlazoleta.application.dto.PedidoItemResponseDto;
-import retoPragma.MicroPlazoleta.application.dto.PedidoResponseDto;
+import retoPragma.MicroPlazoleta.application.dto.OrderResponseDto;
+import retoPragma.MicroPlazoleta.application.dto.OrderItemResponseDto;
 import retoPragma.MicroPlazoleta.domain.model.Order;
 import retoPragma.MicroPlazoleta.domain.model.OrderItem;
 
 @Mapper(componentModel = "spring",
         unmappedTargetPolicy = ReportingPolicy.IGNORE,
         unmappedSourcePolicy = ReportingPolicy.IGNORE)
-public interface IPedidoAppResponseMapper {
+public interface IOrderAppResponseMapper {
 
-    PedidoResponseDto toPedidoResponseDto(Order order);
+    OrderResponseDto toOrderResponseDto(Order order);
 
 
-    PedidoItemResponseDto toPedidoItemResponseDto(OrderItem orderItem);
+    OrderItemResponseDto toOrderItemResponseDto(OrderItem orderItem);
 }

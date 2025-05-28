@@ -1,14 +1,14 @@
 package retoPragma.MicroPlazoleta.domain.spi;
 
+import retoPragma.MicroPlazoleta.domain.model.PageModel;
+import retoPragma.MicroPlazoleta.domain.model.PageRequestModel;
 import retoPragma.MicroPlazoleta.domain.model.Restaurant;
-
-import java.util.List;
 
 public interface IRestaurantPersistencePort {
 
     void saveRestaurant(Restaurant restaurant);
     Restaurant findRestaurantById(Long id);
-    List<Restaurant> findAllRestaurantsOrderedByName(int page, int size);
+    PageModel<Restaurant> findAllRestaurantsOrderedByName(PageRequestModel pageRequestModel);
     boolean platoBelongsRestaurant(Long idDish, Long idRestaurant);
     boolean employeeBelongsRestaurant(Long idRestaurant);
 }

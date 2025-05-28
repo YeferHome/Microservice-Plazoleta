@@ -2,13 +2,14 @@ package retoPragma.MicroPlazoleta.application.handler;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import retoPragma.MicroPlazoleta.application.dto.RestauranteAppRequestDto;
-import retoPragma.MicroPlazoleta.application.dto.RestauranteResumenResponseDto;
-import retoPragma.MicroPlazoleta.application.mapper.IRestauranteAppRequestMapper;
-import retoPragma.MicroPlazoleta.domain.api.IRestauranteServicePort;
+import retoPragma.MicroPlazoleta.application.dto.PageResponseDto;
+import retoPragma.MicroPlazoleta.application.dto.RestaurantAppRequestDto;
+import retoPragma.MicroPlazoleta.application.dto.RestaurantSummaryResponseDto;
+import retoPragma.MicroPlazoleta.application.mapper.IRestaurantAppRequestMapper;
+import retoPragma.MicroPlazoleta.domain.api.IRestaurantServicePort;
+import retoPragma.MicroPlazoleta.domain.model.PageModel;
 import retoPragma.MicroPlazoleta.domain.model.Restaurant;
 
-import java.util.Arrays;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -16,57 +17,54 @@ import static org.mockito.Mockito.*;
 
 class RestaurantAppHandlerTest {
 
-    private IRestauranteServicePort restauranteServicePort;
-    private IRestauranteAppRequestMapper restauranteAppRequestMapper;
-    private RestauranteAppHandler restauranteAppHandler;
+    private IRestaurantServicePort restaurantServicePort;
+    private IRestaurantAppRequestMapper restaurantAppRequestMapper;
+    private RestaurantAppHandler restaurantAppHandler;
 
     @BeforeEach
     void setUp() {
-        restauranteServicePort = mock(IRestauranteServicePort.class);
-        restauranteAppRequestMapper = mock(IRestauranteAppRequestMapper.class);
-        restauranteAppHandler = new RestauranteAppHandler(restauranteServicePort, restauranteAppRequestMapper);
+        restaurantServicePort = mock(IRestaurantServicePort.class);
+        restaurantAppRequestMapper = mock(IRestaurantAppRequestMapper.class);
+        restaurantAppHandler = new RestaurantAppHandler(restaurantServicePort, restaurantAppRequestMapper);
     }
 
     @Test
-    void saveRestauranteInRestauranteApp() {
-        // Arrange
-        RestauranteAppRequestDto requestDto = new RestauranteAppRequestDto();
+    void saveRestaurantInRestaurantApp_shouldCallService() {
+        RestaurantAppRequestDto requestDto = new RestaurantAppRequestDto();
         Restaurant restaurant = new Restaurant();
 
-        when(restauranteAppRequestMapper.toRestaurante(requestDto)).thenReturn(restaurant);
+        when(restaurantAppRequestMapper.toRestaurant(requestDto)).thenReturn(restaurant);
 
-        // Act
-        restauranteAppHandler.saveRestauranteInRestauranteApp(requestDto);
+        restaurantAppHandler.saveRestaurantInRestaurantApp(requestDto);
 
-        // Assert
-        verify(restauranteAppRequestMapper, times(1)).toRestaurante(requestDto);
-        verify(restauranteServicePort, times(1)).saveRestaurante(restaurant);
+        verify(restaurantAppRequestMapper).toRestaurant(requestDto);
+        verify(restaurantServicePort).saveRestaurant(restaurant);
     }
 
     @Test
-    void listRestaurantes() {
-        // Arrange
-        Restaurant restaurant1 = new Restaurant();
-        restaurant1.setNombreRestaurante("Restaurante 1");
-        restaurant1.setUrlLogo("http://logo1.png");
+    void listRestaurants_shouldReturnPageResponseDto() {
+        int page = 0;
+        int size = 2;
 
-        Restaurant restaurant2 = new Restaurant();
-        restaurant2.setNombreRestaurante("Restaurante 2");
-        restaurant2.setUrlLogo("http://logo2.png");
+        Restaurant r1 = new Restaurant(1L, "Resto 1", 123L, "Dir1", "+573001", "logo1.png", 10L);
+        Restaurant r2 = new Restaurant(2L, "Resto 2", 456L, "Dir2", "+573002", "logo2.png", 20L);
 
-        List<Restaurant> mockRestaurants = Arrays.asList(restaurant1, restaurant2);
-        when(restauranteServicePort.getAllRestaurantes(0, 10)).thenReturn(mockRestaurants);
+        PageModel<Restaurant> pageModel = new PageModel<>(List.of(r1, r2), page, size, 2L);
 
-        // Act
-        List<RestauranteResumenResponseDto> result = restauranteAppHandler.listRestaurantes(0, 10);
+        when(restaurantServicePort.getAllRestaurants(any())).thenReturn(pageModel);
 
-        // Assert
-        assertEquals(2, result.size());
-        assertEquals("Restaurante 1", result.get(0).getNombreRestaurante());
-        assertEquals("http://logo1.png", result.get(0).getUrlLogo());
-        assertEquals("Restaurante 2", result.get(1).getNombreRestaurante());
-        assertEquals("http://logo2.png", result.get(1).getUrlLogo());
+        PageResponseDto<RestaurantSummaryResponseDto> response = restaurantAppHandler.listRestaurants(page, size);
 
-        verify(restauranteServicePort, times(1)).getAllRestaurantes(0, 10);
+        assertNotNull(response);
+        assertEquals(2, response.getContent().size());
+        assertEquals("Resto 1", response.getContent().get(0).getNombreRestaurante());
+        assertEquals("logo1.png", response.getContent().get(0).getUrlLogo());
+        assertEquals("Resto 2", response.getContent().get(1).getNombreRestaurante());
+        assertEquals("logo2.png", response.getContent().get(1).getUrlLogo());
+        assertEquals(2L, response.getTotalElements());
+        assertEquals(page, response.getPageNumber());
+        assertEquals(size, response.getPageSize());
+
+        verify(restaurantServicePort).getAllRestaurants(any());
     }
 }

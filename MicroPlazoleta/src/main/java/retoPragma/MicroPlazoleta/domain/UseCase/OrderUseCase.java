@@ -1,18 +1,18 @@
 package retoPragma.MicroPlazoleta.domain.UseCase;
 
-import org.springframework.data.domain.Page;
 import retoPragma.MicroPlazoleta.domain.api.IOrderServicePort;
 import retoPragma.MicroPlazoleta.domain.api.IUserServicePort;
+import retoPragma.MicroPlazoleta.domain.model.Order;
 import retoPragma.MicroPlazoleta.domain.model.OrderItem;
+import retoPragma.MicroPlazoleta.domain.model.PageModel;
+import retoPragma.MicroPlazoleta.domain.model.PageRequestModel;
+import retoPragma.MicroPlazoleta.domain.spi.IOrderPersistencePort;
+import retoPragma.MicroPlazoleta.domain.spi.IRestaurantPersistencePort;
 import retoPragma.MicroPlazoleta.domain.util.exception.PedidoException.EmpleadoPerteneceRestauranteException;
 import retoPragma.MicroPlazoleta.domain.util.exception.PedidoException.PedidoEnProcesoException;
 import retoPragma.MicroPlazoleta.domain.util.exception.PedidoException.PlatoNoPerteneceARestauranteException;
-import retoPragma.MicroPlazoleta.domain.model.Order;
-import retoPragma.MicroPlazoleta.domain.spi.IOrderPersistencePort;
-import retoPragma.MicroPlazoleta.domain.spi.IRestaurantPersistencePort;
 import retoPragma.MicroPlazoleta.domain.util.pedidoUtil.EstateOrder;
 import retoPragma.MicroPlazoleta.domain.util.pedidoUtil.OrderValidator;
-
 
 public class OrderUseCase implements IOrderServicePort {
 
@@ -32,11 +32,11 @@ public class OrderUseCase implements IOrderServicePort {
 
     @Override
     public Order saveOrder(Order order) {
-
         boolean haveOrderActive = orderPersistencePort.userHaveOrderActive(order.getIdClient());
         if (haveOrderActive) {
             throw new PedidoEnProcesoException();
         }
+
         for (OrderItem item : order.getItems()) {
             boolean belongs = restaurantPersistencePort
                     .platoBelongsRestaurant(item.getIdDish(), order.getIdRestaurant());
@@ -45,17 +45,18 @@ public class OrderUseCase implements IOrderServicePort {
             }
         }
 
-        orderValidator.validarPedido(order);
+        orderValidator.validateOrder(order);
+        order.setEstate(EstateOrder.PENDIENTE);
+
         return orderPersistencePort.saveOrder(order);
     }
 
     @Override
-    public Page<Order> getOrderByStates(long restaurantId, EstateOrder estate, int page, int size) {
+    public PageModel<Order> getOrderByStates(long restaurantId, EstateOrder estate, PageRequestModel pageRequestModel) {
         if (!restaurantPersistencePort.employeeBelongsRestaurant(restaurantId)) {
             throw new EmpleadoPerteneceRestauranteException();
         }
 
-        return orderPersistencePort.findOrderByStateRestaurant(estate, restaurantId, page, size);
+        return orderPersistencePort.findOrderByStateRestaurant(estate, restaurantId, pageRequestModel);
     }
-
 }

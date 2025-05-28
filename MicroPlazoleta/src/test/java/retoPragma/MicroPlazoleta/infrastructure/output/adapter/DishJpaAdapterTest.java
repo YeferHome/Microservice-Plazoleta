@@ -2,14 +2,15 @@ package retoPragma.MicroPlazoleta.infrastructure.output.adapter;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import retoPragma.MicroPlazoleta.domain.model.Dish;
+import retoPragma.MicroPlazoleta.domain.model.PageModel;
+import retoPragma.MicroPlazoleta.domain.model.PageRequestModel;
 import retoPragma.MicroPlazoleta.domain.util.exception.PlatoException.ExistecePlatoException;
 import retoPragma.MicroPlazoleta.domain.util.exception.PlatoException.NoPlatoException;
-import retoPragma.MicroPlazoleta.infrastructure.output.entity.PlatoEntity;
+import retoPragma.MicroPlazoleta.infrastructure.output.entity.DishEntity;
 import retoPragma.MicroPlazoleta.infrastructure.output.mapper.IPlatoEntityMapper;
 import retoPragma.MicroPlazoleta.infrastructure.output.repository.IPlatoRepository;
 
@@ -33,136 +34,96 @@ class DishJpaAdapterTest {
     }
 
     @Test
-    void savePlato() {
+    void saveDish_success() {
         Dish dish = mock(Dish.class);
-        PlatoEntity platoEntity = mock(PlatoEntity.class);
+        DishEntity dishEntity = mock(DishEntity.class);
 
-        when(platoEntityMapper.toPlatoEntity(dish)).thenReturn(platoEntity);
-
+        when(platoEntityMapper.toPlatoEntity(dish)).thenReturn(dishEntity);
         platoJpaAdapter.saveDish(dish);
 
         verify(platoEntityMapper).toPlatoEntity(dish);
-        verify(platoRepository).save(platoEntity);
+        verify(platoRepository).save(dishEntity);
     }
 
     @Test
-    void findPlatoById_success() {
+    void findDishById_success() {
         Long id = 1L;
-        PlatoEntity platoEntity = mock(PlatoEntity.class);
+        DishEntity dishEntity = mock(DishEntity.class);
         Dish dish = mock(Dish.class);
 
-        when(platoRepository.findById(id)).thenReturn(Optional.of(platoEntity));
-        when(platoEntityMapper.toPlato(platoEntity)).thenReturn(dish);
+        when(platoRepository.findById(id)).thenReturn(Optional.of(dishEntity));
+        when(platoEntityMapper.toPlato(dishEntity)).thenReturn(dish);
 
         Dish result = platoJpaAdapter.findDishById(id);
 
-        verify(platoRepository).findById(id);
-        verify(platoEntityMapper).toPlato(platoEntity);
         assertEquals(dish, result);
+        verify(platoRepository).findById(id);
+        verify(platoEntityMapper).toPlato(dishEntity);
     }
 
     @Test
-    void findPlatoById_notFound_throwsException() {
+    void findDishById_notFound_throws() {
+        when(platoRepository.findById(1L)).thenReturn(Optional.empty());
+        assertThrows(NoPlatoException.class, () -> platoJpaAdapter.findDishById(1L));
+    }
+
+    @Test
+    void updateEstateDish_success() {
         Long id = 1L;
+        DishEntity entity = mock(DishEntity.class);
+        Dish expected = mock(Dish.class);
 
-        when(platoRepository.findById(id)).thenReturn(Optional.empty());
+        when(platoRepository.findById(id)).thenReturn(Optional.of(entity));
+        when(platoEntityMapper.toPlato(entity)).thenReturn(expected);
 
-        assertThrows(NoPlatoException.class, () -> platoJpaAdapter.findDishById(id));
+        Dish result = platoJpaAdapter.updateEstateDish(id, false, 10L);
 
-        verify(platoRepository).findById(id);
-        verify(platoEntityMapper, never()).toPlato(any());
+        verify(entity).setEstate(false);
+        verify(platoRepository).save(entity);
+        assertEquals(expected, result);
     }
 
     @Test
-    void updateEstadoPlato_success() {
-        Long idPlato = 1L;
-        boolean nuevoEstado = true;
-        Long idUsuario = 100L;
+    void updateEstateDish_notFound_throws() {
+        when(platoRepository.findById(1L)).thenReturn(Optional.empty());
+        assertThrows(ExistecePlatoException.class, () -> platoJpaAdapter.updateEstateDish(1L, true, 10L));
+    }
 
-        PlatoEntity platoEntity = mock(PlatoEntity.class);
+    @Test
+    void findDishesByRestaurantAndOptionalCategory_withCategory() {
+        Long restaurantId = 1L;
+        String category = "Entradas";
+        PageRequestModel request = new PageRequestModel(0, 5);
+
+        DishEntity entity = mock(DishEntity.class);
         Dish dish = mock(Dish.class);
+        Page<DishEntity> page = new PageImpl<>(List.of(entity));
 
-        when(platoRepository.findById(idPlato)).thenReturn(Optional.of(platoEntity));
-        when(platoEntityMapper.toPlato(platoEntity)).thenReturn(dish);
+        when(platoRepository.findAllByIdRestauranteAndCategoriaPlato(eq(restaurantId), eq(category), any(Pageable.class)))
+                .thenReturn(page);
+        when(platoEntityMapper.toPlato(entity)).thenReturn(dish);
 
-        Dish result = platoJpaAdapter.updateEstateDish(idPlato, nuevoEstado, idUsuario);
+        PageModel<Dish> result = platoJpaAdapter.findDishesByRestaurantAndOptionalCategory(restaurantId, category, request);
 
-        verify(platoRepository).findById(idPlato);
-        verify(platoEntity).setEstado(nuevoEstado);
-        verify(platoRepository).save(platoEntity);
-        verify(platoEntityMapper).toPlato(platoEntity);
-
-        assertEquals(dish, result);
+        assertEquals(1, result.getContent().size());
+        assertEquals(dish, result.getContent().get(0));
     }
 
     @Test
-    void updateEstadoPlato_notFound_throwsException() {
-        Long idPlato = 1L;
-        boolean nuevoEstado = true;
-        Long idUsuario = 100L;
+    void findDishesByRestaurantAndOptionalCategory_withoutCategory() {
+        Long restaurantId = 1L;
+        PageRequestModel request = new PageRequestModel(0, 5);
 
-        when(platoRepository.findById(idPlato)).thenReturn(Optional.empty());
-
-        assertThrows(ExistecePlatoException.class,
-                () -> platoJpaAdapter.updateEstateDish(idPlato, nuevoEstado, idUsuario));
-
-        verify(platoRepository).findById(idPlato);
-        verify(platoRepository, never()).save(any());
-        verify(platoEntityMapper, never()).toPlato(any());
-    }
-
-    @Test
-    void findByRestauranteAndCategoria() {
-        Long idRestaurante = 1L;
-        String categoria = "Categoria1";
-        int page = 0;
-        int size = 5;
-
-        PlatoEntity platoEntity = mock(PlatoEntity.class);
+        DishEntity entity = mock(DishEntity.class);
         Dish dish = mock(Dish.class);
+        Page<DishEntity> page = new PageImpl<>(List.of(entity));
 
-        List<PlatoEntity> entities = List.of(platoEntity);
-        Page<PlatoEntity> pageResult = new PageImpl<>(entities);
+        when(platoRepository.findAllByIdRestaurante(eq(restaurantId), any(Pageable.class))).thenReturn(page);
+        when(platoEntityMapper.toPlato(entity)).thenReturn(dish);
 
-        when(platoRepository.findAllByIdRestauranteAndCategoriaPlato(eq(idRestaurante), eq(categoria), any(Pageable.class)))
-                .thenReturn(pageResult);
+        PageModel<Dish> result = platoJpaAdapter.findDishesByRestaurantAndOptionalCategory(restaurantId, "", request);
 
-        when(platoEntityMapper.toPlato(platoEntity)).thenReturn(dish);
-
-        List<Dish> result = platoJpaAdapter.findByRestaurantAndCategory(idRestaurante, categoria, page, size);
-
-        verify(platoRepository).findAllByIdRestauranteAndCategoriaPlato(eq(idRestaurante), eq(categoria), any(Pageable.class));
-        verify(platoEntityMapper).toPlato(platoEntity);
-
-        assertNotNull(result);
-        assertEquals(1, result.size());
-        assertEquals(dish, result.get(0));
-    }
-
-    @Test
-    void findByRestaurante() {
-        Long idRestaurante = 1L;
-        int page = 0;
-        int size = 5;
-
-        PlatoEntity platoEntity = mock(PlatoEntity.class);
-        Dish dish = mock(Dish.class);
-
-        List<PlatoEntity> entities = List.of(platoEntity);
-        Page<PlatoEntity> pageResult = new PageImpl<>(entities);
-
-        when(platoRepository.findAllByIdRestaurante(eq(idRestaurante), any(Pageable.class)))
-                .thenReturn(pageResult);
-
-        when(platoEntityMapper.toPlato(platoEntity)).thenReturn(dish);
-
-        List<Dish> result = platoJpaAdapter.findByRestaurant(idRestaurante, page, size);
-
-        verify(platoRepository).findAllByIdRestaurante(eq(idRestaurante), any(Pageable.class));
-        verify(platoEntityMapper).toPlato(platoEntity);
-
-        assertNotNull(result);
-        assertEquals(1, result.size());
-        assertEquals(dish, result.get(0));
+        assertEquals(1, result.getContent().size());
+        assertEquals(dish, result.getContent().get(0));
     }
 }

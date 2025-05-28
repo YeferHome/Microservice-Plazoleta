@@ -10,12 +10,12 @@ import java.util.List;
 @Getter
 @Setter
 @AllArgsConstructor
-public class PedidoResponseDto {
+public class OrderResponseDto {
 
     private Long idPedido;
     private EstateOrder estado;
     private Long idCliente;
     private Long idRestaurante;
-    private List<PedidoItemResponseDto> items;
+    private List<OrderItemResponseDto> items;
 
 }

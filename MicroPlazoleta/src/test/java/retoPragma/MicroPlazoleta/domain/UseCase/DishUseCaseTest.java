@@ -5,6 +5,8 @@ import org.junit.jupiter.api.Test;
 import org.mockito.*;
 import retoPragma.MicroPlazoleta.domain.api.IUserServicePort;
 import retoPragma.MicroPlazoleta.domain.model.Dish;
+import retoPragma.MicroPlazoleta.domain.model.PageModel;
+import retoPragma.MicroPlazoleta.domain.model.PageRequestModel;
 import retoPragma.MicroPlazoleta.domain.model.Restaurant;
 import retoPragma.MicroPlazoleta.domain.spi.IDishPersistencePort;
 import retoPragma.MicroPlazoleta.domain.spi.IRestaurantPersistencePort;
@@ -17,14 +19,11 @@ import static org.mockito.Mockito.*;
 
 class DishUseCaseTest {
 
-    @Mock
-    private IDishPersistencePort platoPersistencePort;
-    @Mock
-    private IRestaurantPersistencePort restaurantePersistencePort;
-    @Mock
-    private IUserServicePort usuarioServicePort;
+    @Mock private IDishPersistencePort dishPersistencePort;
+    @Mock private IRestaurantPersistencePort restaurantPersistencePort;
+    @Mock private IUserServicePort userServicePort;
 
-    private DishUseCase DIshUseCase;
+    private DishUseCase dishUseCase;
 
     private Dish dish;
     private Restaurant restaurant;
@@ -32,124 +31,104 @@ class DishUseCaseTest {
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
-        DIshUseCase = new DishUseCase(platoPersistencePort, restaurantePersistencePort, usuarioServicePort);
-
+        dishUseCase = new DishUseCase(dishPersistencePort, restaurantPersistencePort, userServicePort);
         dish = new Dish(1L, "Plato1", "Delicioso", 10000L, "url.com", "Categoría", true, 1L, 1L);
         restaurant = new Restaurant();
-        restaurant.setIdUsuario(1L);
+        restaurant.setIdUser(1L);
     }
 
     @Test
-    void savePlato_success() {
-        when(restaurantePersistencePort.findRestaurantById(1L)).thenReturn(restaurant);
-
-        DIshUseCase.saveDish(dish);
-
+    void saveDish_success() {
+        when(restaurantPersistencePort.findRestaurantById(1L)).thenReturn(restaurant);
+        dishUseCase.saveDish(dish);
         assertTrue(dish.getEstate());
-        verify(platoPersistencePort).saveDish(dish);
+        verify(dishPersistencePort).saveDish(dish);
     }
 
     @Test
-    void savePlato_restauranteNotFound_throwsException() {
-        when(restaurantePersistencePort.findRestaurantById(1L)).thenReturn(null);
-
-        assertThrows(PlatoAssociatedException.class, () -> DIshUseCase.saveDish(dish));
+    void saveDish_restaurantNotFound_throwsException() {
+        when(restaurantPersistencePort.findRestaurantById(1L)).thenReturn(null);
+        assertThrows(PlatoAssociatedException.class, () -> dishUseCase.saveDish(dish));
     }
 
     @Test
-    void savePlato_usuarioIncorrecto_throwsException() {
-        Restaurant otroRestaurant = new Restaurant();
-        otroRestaurant.setIdUsuario(999L);
-        when(restaurantePersistencePort.findRestaurantById(1L)).thenReturn(otroRestaurant);
-
-        assertThrows(PlatoOwnerException.class, () -> DIshUseCase.saveDish(dish));
+    void saveDish_invalidOwner_throwsException() {
+        Restaurant other = new Restaurant();
+        other.setIdUser(999L);
+        when(restaurantPersistencePort.findRestaurantById(1L)).thenReturn(other);
+        assertThrows(PlatoOwnerException.class, () -> dishUseCase.saveDish(dish));
     }
 
     @Test
-    void savePlato_precioInvalido_throwsException() {
+    void saveDish_invalidPrice_throwsException() {
         dish.setPriceDish(0L);
-        when(restaurantePersistencePort.findRestaurantById(1L)).thenReturn(restaurant);
-
-        assertThrows(PricePlatoException.class, () -> DIshUseCase.saveDish(dish));
+        when(restaurantPersistencePort.findRestaurantById(1L)).thenReturn(restaurant);
+        assertThrows(PricePlatoException.class, () -> dishUseCase.saveDish(dish));
     }
 
     @Test
-    void updatePlato_success() {
-        when(usuarioServicePort.obtainRolUser(1L)).thenReturn("PROPIETARIO");
-        when(restaurantePersistencePort.findRestaurantById(1L)).thenReturn(restaurant);
-        when(platoPersistencePort.findDishById(1L)).thenReturn(dish);
+    void updateDish_success() {
+        when(userServicePort.obtainRolUser(1L)).thenReturn("PROPIETARIO");
+        when(restaurantPersistencePort.findRestaurantById(1L)).thenReturn(restaurant);
+        when(dishPersistencePort.findDishById(1L)).thenReturn(dish);
 
-        Dish modificado = new Dish(1L, "Plato mod", "Modificado", 12000L, "url.com", "Categoría", true, 1L, 1L);
+        Dish updated = new Dish(1L, "Nuevo", "Cambiado", 12000L, "url.com", "cat", true, 1L, 1L);
 
-        Dish actualizado = DIshUseCase.updateDish(1L, modificado, 1L);
+        Dish result = dishUseCase.updateDish(1L, updated, 1L);
 
-        assertEquals("Modificado", actualizado.getDescriptionDish());
-        assertEquals(12000L, actualizado.getPriceDrish());
-        verify(platoPersistencePort).saveDish(actualizado);
+        assertEquals("Cambiado", result.getDescriptionDish());
+        assertEquals(12000L, result.getPriceDrish());
+        verify(dishPersistencePort).saveDish(result);
     }
 
     @Test
-    void updatePlato_usuarioSinRol_throwsException() {
-        when(usuarioServicePort.obtainRolUser(1L)).thenReturn("CLIENTE");
-
-        assertThrows(NoPermissionCreateException.class, () -> DIshUseCase.updateDish(1L, dish, 1L));
+    void updateDish_userNotOwner_throwsException() {
+        when(userServicePort.obtainRolUser(1L)).thenReturn("CLIENTE");
+        assertThrows(NoPermissionCreateException.class, () -> dishUseCase.updateDish(1L, dish, 1L));
     }
 
     @Test
-    void updatePlato_usuarioNoPropietarioDelRestaurante_throwsException() {
-        Restaurant restaurantOtroUsuario = new Restaurant();
-        restaurantOtroUsuario.setIdUsuario(999L);
-        when(usuarioServicePort.obtainRolUser(1L)).thenReturn("PROPIETARIO");
-        when(restaurantePersistencePort.findRestaurantById(1L)).thenReturn(restaurantOtroUsuario);
-
-        assertThrows(OwnerNoRestaurantException.class, () -> DIshUseCase.updateDish(1L, dish, 1L));
+    void updateDish_notRestaurantOwner_throwsException() {
+        Restaurant other = new Restaurant();
+        other.setIdUser(999L);
+        when(userServicePort.obtainRolUser(1L)).thenReturn("PROPIETARIO");
+        when(restaurantPersistencePort.findRestaurantById(1L)).thenReturn(other);
+        assertThrows(OwnerNoRestaurantException.class, () -> dishUseCase.updateDish(1L, dish, 1L));
     }
 
     @Test
-    void updatePlato_platoNoExiste_throwsException() {
-        when(usuarioServicePort.obtainRolUser(anyLong())).thenReturn("PROPIETARIO");
-        when(restaurantePersistencePort.findRestaurantById(anyLong())).thenReturn(restaurant);
-        when(platoPersistencePort.findDishById(anyLong())).thenReturn(null);
-
-        assertThrows(ExistecePlatoException.class, () -> DIshUseCase.updateDish(1L, dish, 1L));
+    void updateDish_dishNotExists_throwsException() {
+        when(userServicePort.obtainRolUser(anyLong())).thenReturn("PROPIETARIO");
+        when(restaurantPersistencePort.findRestaurantById(anyLong())).thenReturn(restaurant);
+        when(dishPersistencePort.findDishById(anyLong())).thenReturn(null);
+        assertThrows(ExistecePlatoException.class, () -> dishUseCase.updateDish(1L, dish, 1L));
     }
 
     @Test
-    void updateEstadoPlato_success() {
-        Dish dishExistente = new Dish(1L, "Plato1", "Desc", 10000L, "url.com", "cat", true, 1L, 1L);
-        Restaurant restaurantPropietario = new Restaurant();
-        restaurantPropietario.setIdUsuario(1L);
+    void updateDishEstate_success() {
+        Dish existing = new Dish(1L, "Plato", "desc", 10000L, "url", "cat", true, 1L, 1L);
+        when(dishPersistencePort.findDishById(1L)).thenReturn(existing);
+        when(userServicePort.obtainRolUser(1L)).thenReturn("PROPIETARIO");
+        when(restaurantPersistencePort.findRestaurantById(1L)).thenReturn(restaurant);
 
-        when(platoPersistencePort.findDishById(1L)).thenReturn(dishExistente);
-        when(usuarioServicePort.obtainRolUser(1L)).thenReturn("PROPIETARIO");
-        when(restaurantePersistencePort.findRestaurantById(1L)).thenReturn(restaurantPropietario);
+        Dish result = dishUseCase.updateEstateDish(1L, false, 1L);
 
-        Dish result = DIshUseCase.updateEstateDish(1L, false, 1L);
-
-        assertNotNull(result);
         assertFalse(result.getEstate());
-        verify(platoPersistencePort).saveDish(dishExistente);
+        verify(dishPersistencePort).saveDish(existing);
     }
 
     @Test
-    void getPlatosByRestauranteWithCategoria() {
-        when(platoPersistencePort.findByRestaurantAndCategory(1L, "cat", 0, 10))
-                .thenReturn(List.of(dish));
+    void getDishesByRestaurantAndOptionalCategory_success() {
+        PageRequestModel pageRequest = new PageRequestModel(0, 10);
+        PageModel<Dish> expected = new PageModel<>(List.of(dish), 0, 10, 1);
 
-        List<Dish> result = DIshUseCase.getDishByRestaurant(1L, "cat", 0, 10);
 
-        assertEquals(1, result.size());
-        verify(platoPersistencePort).findByRestaurantAndCategory(1L, "cat", 0, 10);
-    }
+        when(dishPersistencePort.findDishesByRestaurantAndOptionalCategory(1L, "cat", pageRequest))
+                .thenReturn(expected);
 
-    @Test
-    void getPlatosByRestauranteWithoutCategoria() {
-        when(platoPersistencePort.findByRestaurant(1L, 0, 10))
-                .thenReturn(List.of(dish));
+        PageModel<Dish> result = dishUseCase.getDishesByRestaurantAndOptionalCategory(1L, "cat", pageRequest);
 
-        List<Dish> result = DIshUseCase.getDishByRestaurant(1L, "", 0, 10);
-
-        assertEquals(1, result.size());
-        verify(platoPersistencePort).findByRestaurant(1L, 0, 10);
+        assertEquals(expected, result);
+        verify(dishPersistencePort).findDishesByRestaurantAndOptionalCategory(1L, "cat", pageRequest);
     }
 }

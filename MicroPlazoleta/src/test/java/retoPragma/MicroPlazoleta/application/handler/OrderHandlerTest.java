@@ -2,15 +2,16 @@ package retoPragma.MicroPlazoleta.application.handler;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
-import retoPragma.MicroPlazoleta.application.dto.PedidoItemResponseDto;
-import retoPragma.MicroPlazoleta.application.dto.PedidoRequestDto;
-import retoPragma.MicroPlazoleta.application.dto.PedidoResponseDto;
-import retoPragma.MicroPlazoleta.application.mapper.IPedidoAppRequestMapper;
-import retoPragma.MicroPlazoleta.application.mapper.IPedidoAppResponseMapper;
+import retoPragma.MicroPlazoleta.application.dto.OrderItemResponseDto;
+import retoPragma.MicroPlazoleta.application.dto.OrderRequestDto;
+import retoPragma.MicroPlazoleta.application.dto.OrderResponseDto;
+import retoPragma.MicroPlazoleta.application.dto.PageResponseDto;
+import retoPragma.MicroPlazoleta.application.mapper.IOrderAppRequestMapper;
+import retoPragma.MicroPlazoleta.application.mapper.IOrderAppResponseMapper;
 import retoPragma.MicroPlazoleta.domain.api.IOrderServicePort;
 import retoPragma.MicroPlazoleta.domain.model.Order;
+import retoPragma.MicroPlazoleta.domain.model.PageModel;
+import retoPragma.MicroPlazoleta.domain.model.PageRequestModel;
 import retoPragma.MicroPlazoleta.domain.util.pedidoUtil.EstateOrder;
 
 import java.util.List;
@@ -20,29 +21,28 @@ import static org.mockito.Mockito.*;
 
 class OrderHandlerTest {
 
-    private IOrderServicePort pedidoServicePort;
-    private IPedidoAppRequestMapper pedidoRequestMapper;
-    private IPedidoAppResponseMapper pedidoResponseMapper;
-    private PedidoHandler pedidoHandler;
+    private IOrderServicePort orderServicePort;
+    private IOrderAppRequestMapper orderRequestMapper;
+    private IOrderAppResponseMapper orderResponseMapper;
+    private OrderHandler orderHandler;
 
     @BeforeEach
     void setUp() {
-        pedidoServicePort = mock(IOrderServicePort.class);
-        pedidoRequestMapper = mock(IPedidoAppRequestMapper.class);
-        pedidoResponseMapper = mock(IPedidoAppResponseMapper.class);
-
-        pedidoHandler = new PedidoHandler(pedidoServicePort, pedidoRequestMapper, pedidoResponseMapper);
+        orderServicePort = mock(IOrderServicePort.class);
+        orderRequestMapper = mock(IOrderAppRequestMapper.class);
+        orderResponseMapper = mock(IOrderAppResponseMapper.class);
+        orderHandler = new OrderHandler(orderServicePort, orderRequestMapper, orderResponseMapper);
     }
 
     @Test
-    void savePedido() {
-        PedidoRequestDto requestDto = new PedidoRequestDto();
-        Order order = new Order();
-        Order orderCreado = new Order();
+    void saveOrder() {
+        OrderRequestDto requestDto = new OrderRequestDto();
+        Order domainOrder = new Order();
+        Order createdOrder = new Order();
 
-        List<PedidoItemResponseDto> itemsResponse = List.of();
+        List<OrderItemResponseDto> itemsResponse = List.of();
 
-        PedidoResponseDto responseDto = new PedidoResponseDto(
+        OrderResponseDto expectedResponse = new OrderResponseDto(
                 1L,
                 EstateOrder.PENDIENTE,
                 10L,
@@ -50,40 +50,53 @@ class OrderHandlerTest {
                 itemsResponse
         );
 
-        when(pedidoRequestMapper.toPedido(requestDto)).thenReturn(order);
-        when(pedidoServicePort.saveOrder(order)).thenReturn(orderCreado);
-        when(pedidoResponseMapper.toPedidoResponseDto(orderCreado)).thenReturn(responseDto);
+        when(orderRequestMapper.toOrder(requestDto)).thenReturn(domainOrder);
+        when(orderServicePort.saveOrder(domainOrder)).thenReturn(createdOrder);
+        when(orderResponseMapper.toOrderResponseDto(createdOrder)).thenReturn(expectedResponse);
 
-        PedidoResponseDto resultado = pedidoHandler.savePedido(requestDto);
+        OrderResponseDto result = orderHandler.saveOrder(requestDto);
 
-        assertNotNull(resultado);
-        assertEquals(responseDto, resultado);
+        assertNotNull(result);
+        assertEquals(expectedResponse.getIdPedido(), result.getIdPedido());
+        assertEquals(expectedResponse.getEstado(), result.getEstado());
+        assertEquals(expectedResponse.getIdCliente(), result.getIdCliente());
+        assertEquals(expectedResponse.getIdRestaurante(), result.getIdRestaurante());
+        assertEquals(expectedResponse.getItems(), result.getItems());
 
-        verify(pedidoRequestMapper).toPedido(requestDto);
-        verify(pedidoServicePort).saveOrder(order);
-        verify(pedidoResponseMapper).toPedidoResponseDto(orderCreado);
+        verify(orderRequestMapper).toOrder(requestDto);
+        verify(orderServicePort).saveOrder(domainOrder);
+        verify(orderResponseMapper).toOrderResponseDto(createdOrder);
     }
 
     @Test
-    void getPedidosPorEstado() {
-        Long restauranteId = 1L;
-        EstateOrder estado = EstateOrder.PENDIENTE;
+    void getOrderByEstate() {
+        Long restaurantId = 1L;
+        EstateOrder state = EstateOrder.PENDIENTE;
         int page = 0;
         int size = 10;
 
         Order order1 = new Order();
         Order order2 = new Order();
-        List<Order> pedidosList = List.of(order1, order2);
-        Page<Order> pedidosPage = new PageImpl<>(pedidosList);
+        List<Order> domainOrders = List.of(order1, order2);
+        PageModel<Order> pageModel = new PageModel<>(domainOrders, page, size, domainOrders.size());
 
-        when(pedidoServicePort.getOrderByStates(restauranteId, estado, page, size)).thenReturn(pedidosPage);
+        OrderResponseDto responseDto1 = new OrderResponseDto(1L, state, 10L, 100L, List.of());
+        OrderResponseDto responseDto2 = new OrderResponseDto(2L, state, 11L, 101L, List.of());
 
-        Page<Order> resultado = pedidoHandler.getPedidosPorEstado(restauranteId, estado, page, size);
+        when(orderServicePort.getOrderByStates(eq(restaurantId), eq(state), any(PageRequestModel.class)))
+                .thenReturn(pageModel);
+        when(orderResponseMapper.toOrderResponseDto(order1)).thenReturn(responseDto1);
+        when(orderResponseMapper.toOrderResponseDto(order2)).thenReturn(responseDto2);
 
-        assertNotNull(resultado);
-        assertEquals(2, resultado.getContent().size());
-        assertEquals(pedidosList, resultado.getContent());
+        PageResponseDto<OrderResponseDto> result = orderHandler.getOrderByEstate(restaurantId, state, page, size);
 
-        verify(pedidoServicePort).getOrderByStates(restauranteId, estado, page, size);
+        assertNotNull(result);
+        assertEquals(2, result.getContent().size());
+        assertEquals(responseDto1.getIdPedido(), result.getContent().get(0).getIdPedido());
+        assertEquals(responseDto2.getIdPedido(), result.getContent().get(1).getIdPedido());
+
+        verify(orderServicePort).getOrderByStates(eq(restaurantId), eq(state), any(PageRequestModel.class));
+        verify(orderResponseMapper).toOrderResponseDto(order1);
+        verify(orderResponseMapper).toOrderResponseDto(order2);
     }
 }

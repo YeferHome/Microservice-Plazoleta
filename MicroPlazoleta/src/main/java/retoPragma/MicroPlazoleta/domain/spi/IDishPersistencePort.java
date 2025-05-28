@@ -1,13 +1,16 @@
 package retoPragma.MicroPlazoleta.domain.spi;
 
 import retoPragma.MicroPlazoleta.domain.model.Dish;
-
-import java.util.List;
+import retoPragma.MicroPlazoleta.domain.model.PageModel;
+import retoPragma.MicroPlazoleta.domain.model.PageRequestModel;
 
 public interface IDishPersistencePort {
+
     void saveDish(Dish dish);
-    Dish findDishById(Long idPlato);
-    Dish updateEstateDish(Long idPlato, boolean nuevoEstado, Long idUsuario);
-    List<Dish> findByRestaurantAndCategory(Long idRestaurante, String categoria, int page, int size);
-    List<Dish> findByRestaurant(Long idRestaurante, int page, int size);
+
+    Dish findDishById(Long idDish);
+
+    Dish updateEstateDish(Long idDish, boolean newState, Long idUser);
+
+    PageModel<Dish> findDishesByRestaurantAndOptionalCategory(Long idRestaurant, String category, PageRequestModel pageRequestModel);
 }

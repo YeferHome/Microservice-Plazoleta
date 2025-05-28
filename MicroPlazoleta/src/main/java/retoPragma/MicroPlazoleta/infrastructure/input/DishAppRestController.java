@@ -10,17 +10,17 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import retoPragma.MicroPlazoleta.application.dto.*;
-import retoPragma.MicroPlazoleta.application.handler.IPlatoAppHandler;
+import retoPragma.MicroPlazoleta.application.handler.IDishAppHandler;
 import retoPragma.MicroPlazoleta.domain.model.Order;
 
 import java.util.List;
 
 @RestController
-@RequestMapping("/platoApp")
+@RequestMapping("/DishApp")
 @RequiredArgsConstructor
-public class PlatoAppRestController {
+public class DishAppRestController {
 
-    private final IPlatoAppHandler platoAppHandler;
+    private final IDishAppHandler platoAppHandler;
 
 
     @Operation(summary = "Plato Creado en la base de datos")
@@ -34,9 +34,9 @@ public class PlatoAppRestController {
             @ApiResponse(responseCode = "400", description = "Error de response", content = @Content)
 
     })
-    @PostMapping("/savePlato")
-    public ResponseEntity<Void> savePlatoInPlatoApp(@RequestBody DishAppRequestDto dishAppRequestDto) {
-        platoAppHandler.savePlatoInPlatoApp(dishAppRequestDto);
+    @PostMapping("/saveDish")
+    public ResponseEntity<Void> saveDishInDishApp(@RequestBody DishAppRequestDto dishAppRequestDto) {
+        platoAppHandler.saveDishInDishApp(dishAppRequestDto);
         return ResponseEntity.status(HttpStatus.CREATED).build();
     }
     @Operation(summary = "Plato actualizado en la base de datos")
@@ -50,12 +50,12 @@ public class PlatoAppRestController {
             @ApiResponse(responseCode = "400", description = "Error de response", content = @Content)
 
     })
-    @PutMapping("/modificarPlato/{idPlato}")
-    public ResponseEntity<PlatoUpdateResponseDto> updatePlatoInPlatoApp(
-            @PathVariable("idPlato") Long idPlato,
+    @PutMapping("/modifyDish/{idDish}")
+    public ResponseEntity<DishUpdateResponseDto> updateDishInDishApp(
+            @PathVariable("idDish") Long idDish,
             @RequestBody DishUpdateRequestDto dishUpdateRequestDto) {
 
-        PlatoUpdateResponseDto updatedPlato = platoAppHandler.updatePlatoInPlatoApp(idPlato, dishUpdateRequestDto);
+        DishUpdateResponseDto updatedPlato = platoAppHandler.updateDishInDishApp(idDish, dishUpdateRequestDto);
         return ResponseEntity.ok(updatedPlato);
     }
     @Operation(summary = "Estado Plato actualizado en la base de datos")
@@ -69,36 +69,34 @@ public class PlatoAppRestController {
             @ApiResponse(responseCode = "400", description = "Error de response", content = @Content)
 
     })
-    @PatchMapping("/{idPlato}/estado")
-    public ResponseEntity<PlatoUpdateEstadoResponseDto> actualizarEstadoPlato(
-            @PathVariable Long idPlato,
+    @PatchMapping("/{idDish}/estate")
+    public ResponseEntity<DishUpdateEstateResponseDto> updateEstateDish(
+            @PathVariable Long idDish,
             @RequestBody DishUpdateEstateRequestDto requestDto) {
 
-        PlatoUpdateEstadoResponseDto updatedPlato =
-                platoAppHandler.updateEstadoPlatoInPlatoApp(idPlato, requestDto.isEstado());
+        DishUpdateEstateResponseDto updatedPlato =
+                platoAppHandler.updateEstateDishInDishApp(idDish, requestDto.isEstado());
         return ResponseEntity.ok(updatedPlato);
     }
 
-    @Operation(summary = "Listado de Menu de base de datos")
+    @Operation(summary = "Listado de menú paginado y filtrado por categoría")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Listado de Menu con exito",
-                    content = {
-                            @Content(mediaType = "application/json",
-                                    schema = @Schema(implementation = Order.class))
-                    }),
-            @ApiResponse(responseCode = "500", description = "Error de parametros", content = @Content),
-            @ApiResponse(responseCode = "400", description = "Error de response", content = @Content)
-
+            @ApiResponse(responseCode = "200", description = "Listado exitoso",
+                    content = @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = DishAppResponseDto.class))),
+            @ApiResponse(responseCode = "400", description = "Error en los parámetros", content = @Content),
+            @ApiResponse(responseCode = "500", description = "Error del servidor", content = @Content)
     })
-
-    @GetMapping("/restaurantes/{idRestaurante}/menu")
-    public ResponseEntity<List<PlatoAppResponseDto>> getMenuRestaurante(
-            @PathVariable Long idRestaurante,
-            @RequestParam(required = false) String categoria,
+    @GetMapping("/restaurants/{idRestaurant}/menu")
+    public ResponseEntity<PageResponseDto<DishAppResponseDto>> getMenuRestaurant(
+            @PathVariable Long idRestaurant,
+            @RequestParam(required = false) String category,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
 
-        List<PlatoAppResponseDto> response = platoAppHandler.listPlatosMenu(idRestaurante, categoria, page, size);
+        PageResponseDto<DishAppResponseDto> response =
+                platoAppHandler.listDishMenu(idRestaurant, category, page, size);
+
         return ResponseEntity.ok(response);
     }
 }

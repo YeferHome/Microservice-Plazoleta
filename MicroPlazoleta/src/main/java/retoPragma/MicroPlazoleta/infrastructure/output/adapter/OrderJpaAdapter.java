@@ -2,54 +2,66 @@ package retoPragma.MicroPlazoleta.infrastructure.output.adapter;
 
 import lombok.AllArgsConstructor;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import retoPragma.MicroPlazoleta.domain.model.Order;
+import retoPragma.MicroPlazoleta.domain.model.PageModel;
+import retoPragma.MicroPlazoleta.domain.model.PageRequestModel;
 import retoPragma.MicroPlazoleta.domain.spi.IOrderPersistencePort;
 import retoPragma.MicroPlazoleta.domain.util.pedidoUtil.EstateOrder;
-import retoPragma.MicroPlazoleta.infrastructure.output.entity.PedidoEntity;
-import retoPragma.MicroPlazoleta.infrastructure.output.entity.PedidoItemEntity;
+import retoPragma.MicroPlazoleta.infrastructure.output.entity.OrderEntity;
+import retoPragma.MicroPlazoleta.infrastructure.output.entity.OrderItemEntity;
 import retoPragma.MicroPlazoleta.infrastructure.output.mapper.IPedidoEntityMapper;
-import retoPragma.MicroPlazoleta.infrastructure.output.repository.IPedidoRepository;
+import retoPragma.MicroPlazoleta.infrastructure.output.repository.IOrderRepository;
 
 import java.util.List;
 
 @AllArgsConstructor
 public class OrderJpaAdapter implements IOrderPersistencePort {
 
-    private final IPedidoRepository pedidoRepository;
-    private final IPedidoEntityMapper pedidoEntityMapper;
-
+    private final IOrderRepository orderRepository;
+    private final IPedidoEntityMapper orderEntityMapper;
 
     @Override
     public Order saveOrder(Order order) {
-        PedidoEntity pedidoEntity = pedidoEntityMapper.toPedidoEntity(order);
+        OrderEntity orderEntity = orderEntityMapper.toPedidoEntity(order);
 
-        if (pedidoEntity.getItems() != null) {
-            for (PedidoItemEntity itemEntity : pedidoEntity.getItems()) {
-                itemEntity.setPedido(pedidoEntity);
+        if (orderEntity.getItems() != null) {
+            for (OrderItemEntity itemEntity : orderEntity.getItems()) {
+                itemEntity.setOrder(orderEntity);
             }
         }
 
-        PedidoEntity savedPedidoEntity = pedidoRepository.save(pedidoEntity);
-        return pedidoEntityMapper.toPedido(savedPedidoEntity);
+        OrderEntity savedOrderEntity = orderRepository.save(orderEntity);
+        return orderEntityMapper.toPedido(savedOrderEntity);
     }
 
     @Override
     public boolean userHaveOrderActive(Long idUser) {
-
-        return pedidoRepository.existsByIdClienteAndEstadoIn(
+        return orderRepository.existsByIdClientAndEstateIn(
                 idUser,
                 List.of(EstateOrder.PENDIENTE, EstateOrder.EN_PREPARACION, EstateOrder.LISTO));
     }
 
     @Override
-    public Page<Order> findOrderByStateRestaurant(EstateOrder estate, Long restaurantId, int page, int size) {
+    public PageModel<Order> findOrderByStateRestaurant(EstateOrder estate, Long restaurantId, PageRequestModel pageRequestModel) {
+        Pageable pageable = PageRequest.of(pageRequestModel.getPage(), pageRequestModel.getSize());
 
-        Page<PedidoEntity> pedidoEntities = pedidoRepository.findByEstadoAndIdRestaurante(estate, restaurantId, page, size);
+        Page<OrderEntity> pageResult = orderRepository.findByEstateAndIdRestaurant(
+                estate,
+                restaurantId,
+                pageable
+        );
 
-        return pedidoEntities.map(pedidoEntityMapper::toPedido);
+        List<Order> content = pageResult.getContent().stream()
+                .map(orderEntityMapper::toPedido)
+                .toList();
+
+        return new PageModel<>(
+                content,
+                pageResult.getNumber(),
+                pageResult.getSize(),
+                pageResult.getTotalElements()
+        );
     }
 }
-
-
-
-

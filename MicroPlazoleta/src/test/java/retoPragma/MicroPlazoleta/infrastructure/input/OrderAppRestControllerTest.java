@@ -8,62 +8,56 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
-import retoPragma.MicroPlazoleta.application.dto.PedidoItemRequestDto;
-import retoPragma.MicroPlazoleta.application.dto.PedidoRequestDto;
-import retoPragma.MicroPlazoleta.application.dto.PedidoItemResponseDto;
-import retoPragma.MicroPlazoleta.application.dto.PedidoResponseDto;
-import retoPragma.MicroPlazoleta.application.handler.IPedidoAppHandler;
-import retoPragma.MicroPlazoleta.domain.model.Order;
+import retoPragma.MicroPlazoleta.application.dto.OrderItemRequestDto;
+import retoPragma.MicroPlazoleta.application.dto.OrderRequestDto;
+import retoPragma.MicroPlazoleta.application.dto.OrderItemResponseDto;
+import retoPragma.MicroPlazoleta.application.dto.OrderResponseDto;
+import retoPragma.MicroPlazoleta.application.dto.PageResponseDto;
+import retoPragma.MicroPlazoleta.application.handler.IOrderAppHandler;
 import retoPragma.MicroPlazoleta.domain.util.pedidoUtil.EstateOrder;
 
 import java.util.List;
 
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyInt;
-import static org.mockito.ArgumentMatchers.anyLong;
-import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@WebMvcTest(PedidoAppRestController.class)
+@WebMvcTest(OrderAppRestController.class)
 @AutoConfigureMockMvc(addFilters = false)
-public class OrderAppRestControllerTest {
+class OrderAppRestControllerTest {
 
     @Autowired
     private MockMvc mockMvc;
 
     @MockBean
-    private IPedidoAppHandler pedidoAppHandler;
+    private IOrderAppHandler pedidoAppHandler;
 
     private ObjectMapper objectMapper;
 
-    private PedidoRequestDto pedidoRequestDto;
-    private PedidoResponseDto pedidoResponseDto;
+    private OrderRequestDto orderRequestDto;
+    private OrderResponseDto orderResponseDto;
 
     @BeforeEach
     void setUp() {
         objectMapper = new ObjectMapper();
 
-        PedidoItemRequestDto item = new PedidoItemRequestDto();
+        OrderItemRequestDto item = new OrderItemRequestDto();
         item.setIdPlato(10L);
         item.setIdRestaurante(1L);
         item.setCantidad(2);
 
-        pedidoRequestDto = new PedidoRequestDto();
-        pedidoRequestDto.setIdCliente(5L);
-        pedidoRequestDto.setIdRestaurante(1L);
-        pedidoRequestDto.setItems(List.of(item));
+        orderRequestDto = new OrderRequestDto();
+        orderRequestDto.setIdCliente(5L);
+        orderRequestDto.setIdRestaurante(1L);
+        orderRequestDto.setItems(List.of(item));
 
-        PedidoItemResponseDto itemResponse = new PedidoItemResponseDto(10L, 2);
+        OrderItemResponseDto itemResponse = new OrderItemResponseDto(10L, 2);
 
-        pedidoResponseDto = new PedidoResponseDto(
+        orderResponseDto = new OrderResponseDto(
                 1L,
                 EstateOrder.PENDIENTE,
                 5L,
@@ -75,33 +69,29 @@ public class OrderAppRestControllerTest {
     @Test
     @WithMockUser
     void savePedido() throws Exception {
-        Mockito.when(pedidoAppHandler.savePedido(any(PedidoRequestDto.class)))
-                .thenReturn(pedidoResponseDto);
+        Mockito.when(pedidoAppHandler.saveOrder(any(OrderRequestDto.class)))
+                .thenReturn(orderResponseDto);
 
-        mockMvc.perform(post("/pedidoApp/savePedido")
+        mockMvc.perform(post("/orderApp/saveOrder")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(pedidoRequestDto)))
+                        .content(objectMapper.writeValueAsString(orderRequestDto)))
                 .andExpect(status().isCreated());
     }
 
     @Test
     @WithMockUser
     void getPedidosPorEstado() throws Exception {
-        Order orderMock = new Order();
-        // Puedes configurar pedidoMock con valores si quieres.
+        PageResponseDto<OrderResponseDto> responsePage = new PageResponseDto<>(
+                List.of(orderResponseDto), 0, 10, 1L
+        );
 
-        Page<Order> pedidoPage = new PageImpl<>(List.of(orderMock), PageRequest.of(0, 10), 1);
+        Mockito.when(pedidoAppHandler.getOrderByEstate(
+                        anyLong(), eq(EstateOrder.PENDIENTE), anyInt(), anyInt()))
+                .thenReturn(responsePage);
 
-        Mockito.when(pedidoAppHandler.getPedidosPorEstado(
-                        anyLong(),
-                        eq(EstateOrder.PENDIENTE),
-                        anyInt(),
-                        anyInt()))
-                .thenReturn(pedidoPage);
-
-        mockMvc.perform(get("/pedidoApp/estado")
-                        .param("restauranteId", "1")
-                        .param("estado", "PENDIENTE")
+        mockMvc.perform(get("/orderApp/estate")
+                        .param("restaurantId", "1")
+                        .param("estate", "PENDIENTE")
                         .param("page", "0")
                         .param("size", "10"))
                 .andExpect(status().isOk());
