@@ -96,4 +96,9 @@ public class OrderAppRestController {
         OrderResponseDto response = orderAppHandler.markOrderAsDelivered(orderId, pinRequest.getPin());
         return ResponseEntity.ok(response);
     }
+    @PutMapping("/cancelOrder/{orderId}")
+    public ResponseEntity<OrderResponseDto> cancelOrder(@PathVariable Long orderId) {
+        OrderResponseDto response = orderAppHandler.cancelOrder(orderId);
+        return ResponseEntity.ok(response);
+    }
 }

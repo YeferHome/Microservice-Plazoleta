@@ -108,4 +108,15 @@ public class OrderUseCase implements IOrderServicePort {
         order.setEstate(EstateOrder.ENTREGADO);
         return orderPersistencePort.saveOrder(order);
     }
+    @Override
+    public Order cancelOrder(Long orderId) {
+        Order order = orderPersistencePort.findById(orderId);
+
+        if (!EstateOrder.PENDIENTE.equals(order.getEstate())) {
+            throw new OrderCanceledException();
+        }
+
+        order.setEstate(EstateOrder.CANCELADO);
+        return orderPersistencePort.saveOrder(order);
+    }
 }
