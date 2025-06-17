@@ -10,9 +10,11 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import retoPragma.MicroPlazoleta.application.dto.RestaurantAppRequestDto;
+import retoPragma.MicroPlazoleta.application.dto.RestaurantIdResponseDto;
 import retoPragma.MicroPlazoleta.application.dto.RestaurantSummaryResponseDto;
 import retoPragma.MicroPlazoleta.application.dto.PageResponseDto;
 import retoPragma.MicroPlazoleta.application.handler.IRestaurantAppHandler;
+import retoPragma.MicroPlazoleta.domain.api.IRestaurantServicePort;
 import retoPragma.MicroPlazoleta.domain.model.Order;
 
 @RestController
@@ -21,7 +23,7 @@ import retoPragma.MicroPlazoleta.domain.model.Order;
 public class RestaurantAppRestController {
 
     private final IRestaurantAppHandler restaurantAppHandler;
-
+    private final IRestaurantServicePort restaurantServicePort;
 
 
     @Operation(summary = "Crear restaurante en la base de datos")
@@ -61,4 +63,21 @@ public class RestaurantAppRestController {
         PageResponseDto<RestaurantSummaryResponseDto> response = restaurantAppHandler.listRestaurants(page, size);
         return ResponseEntity.ok(response);
     }
+
+
+    @Operation(summary = "Obtener solo el ID del restaurante")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Restaurante encontrado",
+                    content = @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = RestaurantIdResponseDto.class))),
+            @ApiResponse(responseCode = "404", description = "Restaurante no encontrado", content = @Content),
+            @ApiResponse(responseCode = "500", description = "Error interno", content = @Content)
+    })
+    @GetMapping("/{id}/restaurant")
+    public ResponseEntity<RestaurantIdResponseDto> getRestaurantId(@PathVariable Long id) {
+        Long restaurantId = restaurantAppHandler.getRestaurantIdByRestaurantId(id);
+        return ResponseEntity.ok(new RestaurantIdResponseDto(restaurantId));
+    }
+
+
 }

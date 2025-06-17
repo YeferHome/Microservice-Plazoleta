@@ -12,10 +12,12 @@ import java.util.List;
 @AllArgsConstructor
 public class OrderResponseDto {
 
-    private Long idPedido;
-    private EstateOrder estado;
-    private Long idCliente;
-    private Long idRestaurante;
+    private Long idOrder;
+    private EstateOrder estate;
+    private Long idClient;
+    private Long idRestaurant;
     private List<OrderItemResponseDto> items;
+    private Long employeeAssigned;
+    private String pin;
 
 }

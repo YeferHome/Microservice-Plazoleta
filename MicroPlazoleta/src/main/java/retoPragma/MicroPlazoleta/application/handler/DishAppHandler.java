@@ -6,7 +6,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import retoPragma.MicroPlazoleta.application.dto.*;
 import retoPragma.MicroPlazoleta.application.mapper.IDishAppRequestMapper;
-import retoPragma.MicroPlazoleta.application.mapper.IPlatoAppResponseMapper;
+import retoPragma.MicroPlazoleta.application.mapper.IDishAppResponseMapper;
 import retoPragma.MicroPlazoleta.domain.api.IDishServicePort;
 import retoPragma.MicroPlazoleta.domain.model.Dish;
 import retoPragma.MicroPlazoleta.domain.model.PageModel;
@@ -22,7 +22,7 @@ public class DishAppHandler implements IDishAppHandler {
 
     private final IDishServicePort platoServicePort;
     private final IDishAppRequestMapper dishAppRequestMapper;
-    private final IPlatoAppResponseMapper dishAppResponseMapper;
+    private final IDishAppResponseMapper dishAppResponseMapper;
 
     @Override
     public void saveDishInDishApp(DishAppRequestDto dishAppRequestDto) {

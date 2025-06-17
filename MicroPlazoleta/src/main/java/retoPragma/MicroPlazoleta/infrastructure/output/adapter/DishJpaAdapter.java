@@ -10,7 +10,7 @@ import retoPragma.MicroPlazoleta.domain.model.PageRequestModel;
 import retoPragma.MicroPlazoleta.domain.spi.IDishPersistencePort;
 import retoPragma.MicroPlazoleta.infrastructure.output.entity.DishEntity;
 import retoPragma.MicroPlazoleta.infrastructure.output.mapper.IPlatoEntityMapper;
-import retoPragma.MicroPlazoleta.infrastructure.output.repository.IPlatoRepository;
+import retoPragma.MicroPlazoleta.infrastructure.output.repository.IDishRepository;
 import retoPragma.MicroPlazoleta.domain.util.exception.PlatoException.ExistecePlatoException;
 import retoPragma.MicroPlazoleta.domain.util.exception.PlatoException.NoPlatoException;
 
@@ -19,7 +19,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class DishJpaAdapter implements IDishPersistencePort {
 
-    private final IPlatoRepository platoRepository;
+    private final IDishRepository platoRepository;
     private final IPlatoEntityMapper platoEntityMapper;
 
     @Override
@@ -51,9 +51,9 @@ public class DishJpaAdapter implements IDishPersistencePort {
 
         Page<DishEntity> pageResult;
         if (category != null && !category.isBlank()) {
-            pageResult = platoRepository.findAllByIdRestauranteAndCategoriaPlato(idRestaurant, category, pageable);
+            pageResult = platoRepository.findAllByIdRestaurantAndCategoryDish(idRestaurant, category, pageable);
         } else {
-            pageResult = platoRepository.findAllByIdRestaurante(idRestaurant, pageable);
+            pageResult = platoRepository.findAllByIdRestaurant(idRestaurant, pageable);
         }
 
         List<Dish> content = pageResult.getContent().stream()

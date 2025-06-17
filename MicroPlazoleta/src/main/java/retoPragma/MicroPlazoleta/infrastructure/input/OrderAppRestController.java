@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.*;
 import retoPragma.MicroPlazoleta.application.dto.OrderRequestDto;
 import retoPragma.MicroPlazoleta.application.dto.OrderResponseDto;
 import retoPragma.MicroPlazoleta.application.dto.PageResponseDto;
+import retoPragma.MicroPlazoleta.application.dto.PinRequestDto;
 import retoPragma.MicroPlazoleta.application.handler.IOrderAppHandler;
 import retoPragma.MicroPlazoleta.domain.util.pedidoUtil.EstateOrder;
 
@@ -52,5 +53,47 @@ public class OrderAppRestController {
             @RequestParam int size) {
         PageResponseDto<OrderResponseDto> responseDto = orderAppHandler.getOrderByEstate(restaurantId, estate, page, size);
         return ResponseEntity.ok(responseDto);
+    }
+
+    @Operation(summary = "Asignar pedido a Empleado")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Lista de pedidos",
+                    content = @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = PageResponseDto.class))),
+            @ApiResponse(responseCode = "400", description = "Error en los parámetros", content = @Content),
+            @ApiResponse(responseCode = "500", description = "Error interno del servidor", content = @Content)
+    })
+    @PutMapping("/asignEmployee/{orderId}/{employeeId}")
+    public ResponseEntity<OrderResponseDto> assignEmployeeAndSetInPreparation(
+            @PathVariable Long orderId,
+            @PathVariable Long employeeId) {
+        OrderResponseDto responseDto = orderAppHandler.assignEmployeeAndSetInPreparation(orderId, employeeId);
+        return ResponseEntity.ok(responseDto);
+    }
+    @Operation(summary = "Pedido hecho")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Orden lista",
+                    content = @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = PageResponseDto.class))),
+            @ApiResponse(responseCode = "400", description = "Error en los parámetros", content = @Content),
+            @ApiResponse(responseCode = "500", description = "Error interno del servidor", content = @Content)
+    })
+    @PutMapping("/markOrderAsDone/{orderId}")
+    public ResponseEntity<OrderResponseDto> markOrderAsDone(
+            @PathVariable Long orderId,
+            @RequestHeader("Authorization") String token) {
+        OrderResponseDto responseDto = orderAppHandler.markOrderAsDone(orderId, token);
+        return ResponseEntity.ok(responseDto);
+
+    }
+
+
+    @PutMapping("/markOrderAsDelivered/{orderId}")
+    public ResponseEntity<OrderResponseDto> markOrderAsDelivered(
+            @PathVariable Long orderId,
+            @RequestBody PinRequestDto pinRequest
+    ) {
+        OrderResponseDto response = orderAppHandler.markOrderAsDelivered(orderId, pinRequest.getPin());
+        return ResponseEntity.ok(response);
     }
 }

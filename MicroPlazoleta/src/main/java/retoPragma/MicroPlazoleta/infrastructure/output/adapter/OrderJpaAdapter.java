@@ -64,4 +64,10 @@ public class OrderJpaAdapter implements IOrderPersistencePort {
                 pageResult.getTotalElements()
         );
     }
+
+    @Override
+    public Order findById(Long idOrder) {
+        OrderEntity orderEntity = orderRepository.findById(idOrder).orElse(null);
+        return orderEntityMapper.toPedido(orderEntity);
+    }
 }

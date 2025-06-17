@@ -3,65 +3,65 @@ package retoPragma.MicroPlazoleta.infrastructure.configuration;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import retoPragma.MicroPlazoleta.domain.UseCase.OrderUseCase;
 import retoPragma.MicroPlazoleta.domain.UseCase.DishUseCase;
+import retoPragma.MicroPlazoleta.domain.UseCase.OrderUseCase;
 import retoPragma.MicroPlazoleta.domain.UseCase.RestaurantUseCase;
-import retoPragma.MicroPlazoleta.domain.api.IOrderServicePort;
-import retoPragma.MicroPlazoleta.domain.api.IDishServicePort;
-import retoPragma.MicroPlazoleta.domain.api.IRestaurantServicePort;
-import retoPragma.MicroPlazoleta.domain.api.IUserServicePort;
-import retoPragma.MicroPlazoleta.domain.spi.IOrderPersistencePort;
+import retoPragma.MicroPlazoleta.domain.api.*;
 import retoPragma.MicroPlazoleta.domain.spi.IDishPersistencePort;
+import retoPragma.MicroPlazoleta.domain.spi.IOrderPersistencePort;
 import retoPragma.MicroPlazoleta.domain.spi.IRestaurantPersistencePort;
-import retoPragma.MicroPlazoleta.infrastructure.output.adapter.OrderJpaAdapter;
 import retoPragma.MicroPlazoleta.infrastructure.output.adapter.DishJpaAdapter;
+import retoPragma.MicroPlazoleta.infrastructure.output.adapter.OrderJpaAdapter;
 import retoPragma.MicroPlazoleta.infrastructure.output.adapter.RestaurantJpaAdapter;
-import retoPragma.MicroPlazoleta.infrastructure.output.mapper.IPedidoEntityMapper;
 import retoPragma.MicroPlazoleta.infrastructure.output.mapper.IPlatoEntityMapper;
+import retoPragma.MicroPlazoleta.infrastructure.output.mapper.IPedidoEntityMapper;
 import retoPragma.MicroPlazoleta.infrastructure.output.mapper.IRestauranteEntityMapper;
+import retoPragma.MicroPlazoleta.infrastructure.output.repository.IDishRepository;
 import retoPragma.MicroPlazoleta.infrastructure.output.repository.IOrderRepository;
-import retoPragma.MicroPlazoleta.infrastructure.output.repository.IPlatoRepository;
-import retoPragma.MicroPlazoleta.infrastructure.output.repository.IRestauranteRepository;
+import retoPragma.MicroPlazoleta.infrastructure.output.repository.IRestaurantRepository;
 
 @Configuration
 @RequiredArgsConstructor
 public class BeanConfiguration {
 
-    private final IPlatoRepository platoRepository;
-    private final IPlatoEntityMapper platoEntityMapper;
-    private final IRestauranteRepository restauranteRepository;
-    private final IRestauranteEntityMapper restauranteEntityMapper;
-    private final IUserServicePort usuarioServicePort;
-    private final IOrderRepository pedidoRepository;
-    private final IPedidoEntityMapper pedidoEntityMapper;
+    private final IDishRepository dishRepository;
+    private final IRestaurantRepository restaurantRepository;
+    private final IOrderRepository orderRepository;
+
+    private final IPlatoEntityMapper dishEntityMapper;
+    private final IRestauranteEntityMapper restaurantEntityMapper;
+    private final IPedidoEntityMapper orderEntityMapper;
+
+    private final IUserServicePort userServicePort;
+    private final IMessagingServicePort messagingServicePort;
 
     @Bean
-    public IDishPersistencePort platoPersistencePort() {
-        return new DishJpaAdapter(platoRepository, platoEntityMapper);
+    public IDishPersistencePort dishPersistencePort() {
+        return new DishJpaAdapter(dishRepository, dishEntityMapper);
     }
 
     @Bean
-    public IDishServicePort platoServicePort() {
-        return new DishUseCase(platoPersistencePort(), restaurantePersistencePort(), usuarioServicePort);
+    public IRestaurantPersistencePort restaurantPersistencePort() {
+        return new RestaurantJpaAdapter(restaurantRepository, restaurantEntityMapper, dishRepository);
     }
 
     @Bean
-    public IRestaurantPersistencePort restaurantePersistencePort() {
-        return new RestaurantJpaAdapter(restauranteRepository, restauranteEntityMapper, platoRepository);
+    public IOrderPersistencePort orderPersistencePort() {
+        return new OrderJpaAdapter(orderRepository, orderEntityMapper);
     }
 
     @Bean
-    public IRestaurantServicePort restauranteServicePort() {
-        return new RestaurantUseCase(restaurantePersistencePort(), usuarioServicePort);
+    public IDishServicePort dishServicePort() {
+        return new DishUseCase(dishPersistencePort(), restaurantPersistencePort(), userServicePort);
     }
 
     @Bean
-    public IOrderPersistencePort pedidoPersistencePort() {
-        return new OrderJpaAdapter(pedidoRepository, pedidoEntityMapper);
+    public IRestaurantServicePort restaurantServicePort() {
+        return new RestaurantUseCase(restaurantPersistencePort(), userServicePort);
     }
 
     @Bean
-    public IOrderServicePort pedidoServicePort() {
-        return new OrderUseCase(pedidoPersistencePort(), usuarioServicePort, restaurantePersistencePort());
+    public IOrderServicePort orderServicePort() {
+        return new OrderUseCase(orderPersistencePort(), userServicePort, restaurantPersistencePort(), messagingServicePort);
     }
 }

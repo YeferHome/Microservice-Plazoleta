@@ -3,6 +3,7 @@ package retoPragma.MicroPlazoleta.application.mapper;
 import org.mapstruct.Mapper;
 import org.mapstruct.ReportingPolicy;
 import retoPragma.MicroPlazoleta.application.dto.RestaurantAppRequestDto;
+import retoPragma.MicroPlazoleta.application.dto.RestaurantIdResponseDto;
 import retoPragma.MicroPlazoleta.application.dto.RestaurantSummaryResponseDto;
 import retoPragma.MicroPlazoleta.domain.model.Restaurant;
 
@@ -12,4 +13,5 @@ import retoPragma.MicroPlazoleta.domain.model.Restaurant;
 public interface IRestaurantAppRequestMapper {
     Restaurant toRestaurant(RestaurantAppRequestDto restaurantAppRequestDto);
     RestaurantSummaryResponseDto toRestauranteAppResponseDto(Restaurant restaurant);
+    RestaurantIdResponseDto toRestaurantIdResponseDto(Restaurant restaurant);
 }

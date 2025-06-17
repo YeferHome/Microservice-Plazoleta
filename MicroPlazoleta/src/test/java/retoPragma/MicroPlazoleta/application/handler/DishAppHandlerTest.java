@@ -9,7 +9,7 @@ import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import retoPragma.MicroPlazoleta.application.dto.*;
 import retoPragma.MicroPlazoleta.application.mapper.IDishAppRequestMapper;
-import retoPragma.MicroPlazoleta.application.mapper.IPlatoAppResponseMapper;
+import retoPragma.MicroPlazoleta.application.mapper.IDishAppResponseMapper;
 import retoPragma.MicroPlazoleta.domain.api.IDishServicePort;
 import retoPragma.MicroPlazoleta.domain.model.Dish;
 import retoPragma.MicroPlazoleta.domain.model.PageModel;
@@ -24,14 +24,14 @@ class DishAppHandlerTest {
 
     private IDishServicePort platoServicePort;
     private IDishAppRequestMapper platoAppRequestMapper;
-    private IPlatoAppResponseMapper platoAppResponseMapper;
+    private IDishAppResponseMapper platoAppResponseMapper;
     private DishAppHandler platoAppHandler;
 
     @BeforeEach
     void setUp() {
         platoServicePort = mock(IDishServicePort.class);
         platoAppRequestMapper = mock(IDishAppRequestMapper.class);
-        platoAppResponseMapper = mock(IPlatoAppResponseMapper.class);
+        platoAppResponseMapper = mock(IDishAppResponseMapper.class);
         platoAppHandler = new DishAppHandler(platoServicePort, platoAppRequestMapper, platoAppResponseMapper);
     }
 
@@ -84,7 +84,7 @@ class DishAppHandlerTest {
             DishUpdateEstateResponseDto result = platoAppHandler.updateEstateDishInDishApp(platoId, nuevoEstado);
 
             assertNotNull(result);
-            assertEquals(nuevoEstado, result.isEstado());
+            assertEquals(nuevoEstado, result.isEstate());
             verify(platoServicePort).updateEstateDish(platoId, nuevoEstado, usuarioId);
         }
     }

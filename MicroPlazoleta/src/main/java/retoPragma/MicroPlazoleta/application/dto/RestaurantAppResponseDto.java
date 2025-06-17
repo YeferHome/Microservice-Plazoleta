@@ -9,11 +9,11 @@ import lombok.Setter;
 @AllArgsConstructor
 public class RestaurantAppResponseDto {
 
-    private String nombreRestaurante;
+    private String nameRestaurant;
     private Long nit;
-    private String direccion;
-    private String telefonoRestaurante;
+    private String address;
+    private String phoneRestaurant;
     private String urlLogo;
-    private Long idUsuario;
+    private Long idUser;
 }
 

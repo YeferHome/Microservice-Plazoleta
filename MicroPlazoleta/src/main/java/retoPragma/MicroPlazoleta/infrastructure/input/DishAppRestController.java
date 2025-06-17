@@ -13,8 +13,6 @@ import retoPragma.MicroPlazoleta.application.dto.*;
 import retoPragma.MicroPlazoleta.application.handler.IDishAppHandler;
 import retoPragma.MicroPlazoleta.domain.model.Order;
 
-import java.util.List;
-
 @RestController
 @RequestMapping("/DishApp")
 @RequiredArgsConstructor
@@ -75,7 +73,7 @@ public class DishAppRestController {
             @RequestBody DishUpdateEstateRequestDto requestDto) {
 
         DishUpdateEstateResponseDto updatedPlato =
-                platoAppHandler.updateEstateDishInDishApp(idDish, requestDto.isEstado());
+                platoAppHandler.updateEstateDishInDishApp(idDish, requestDto.isEstate());
         return ResponseEntity.ok(updatedPlato);
     }
 

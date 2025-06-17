@@ -14,6 +14,15 @@ public class UserFeignAdapter implements IUserServicePort {
 
     @Override
     public String obtainRolUser(Long id) {
-        return usuarioFeignClient.obtenerRol(id);
+        return usuarioFeignClient.obtainRolUser(id);
+    }
+
+    @Override
+    public String obtainNumberPhoneClient(Long idClient) {
+        return usuarioFeignClient.obtainNumberPhone(idClient);
+    }
+    @Override
+    public void assignRestaurantToUser(Long idUser, Long idRestaurant) {
+        usuarioFeignClient.assignRestaurantToUser(idUser, idRestaurant);
     }
 }

@@ -11,11 +11,7 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
-import retoPragma.MicroPlazoleta.application.dto.OrderItemRequestDto;
-import retoPragma.MicroPlazoleta.application.dto.OrderRequestDto;
-import retoPragma.MicroPlazoleta.application.dto.OrderItemResponseDto;
-import retoPragma.MicroPlazoleta.application.dto.OrderResponseDto;
-import retoPragma.MicroPlazoleta.application.dto.PageResponseDto;
+import retoPragma.MicroPlazoleta.application.dto.*;
 import retoPragma.MicroPlazoleta.application.handler.IOrderAppHandler;
 import retoPragma.MicroPlazoleta.domain.util.pedidoUtil.EstateOrder;
 
@@ -37,7 +33,6 @@ class OrderAppRestControllerTest {
     private IOrderAppHandler pedidoAppHandler;
 
     private ObjectMapper objectMapper;
-
     private OrderRequestDto orderRequestDto;
     private OrderResponseDto orderResponseDto;
 
@@ -56,13 +51,13 @@ class OrderAppRestControllerTest {
         orderRequestDto.setItems(List.of(item));
 
         OrderItemResponseDto itemResponse = new OrderItemResponseDto(10L, 2);
-
         orderResponseDto = new OrderResponseDto(
                 1L,
                 EstateOrder.PENDIENTE,
                 5L,
                 1L,
-                List.of(itemResponse)
+                List.of(itemResponse),
+                null
         );
     }
 

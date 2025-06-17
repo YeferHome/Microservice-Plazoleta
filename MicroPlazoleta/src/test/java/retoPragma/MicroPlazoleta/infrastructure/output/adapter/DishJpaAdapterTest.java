@@ -12,7 +12,7 @@ import retoPragma.MicroPlazoleta.domain.util.exception.PlatoException.ExistecePl
 import retoPragma.MicroPlazoleta.domain.util.exception.PlatoException.NoPlatoException;
 import retoPragma.MicroPlazoleta.infrastructure.output.entity.DishEntity;
 import retoPragma.MicroPlazoleta.infrastructure.output.mapper.IPlatoEntityMapper;
-import retoPragma.MicroPlazoleta.infrastructure.output.repository.IPlatoRepository;
+import retoPragma.MicroPlazoleta.infrastructure.output.repository.IDishRepository;
 
 import java.util.List;
 import java.util.Optional;
@@ -22,13 +22,13 @@ import static org.mockito.Mockito.*;
 
 class DishJpaAdapterTest {
 
-    private IPlatoRepository platoRepository;
+    private IDishRepository platoRepository;
     private IPlatoEntityMapper platoEntityMapper;
     private DishJpaAdapter platoJpaAdapter;
 
     @BeforeEach
     void setUp() {
-        platoRepository = mock(IPlatoRepository.class);
+        platoRepository = mock(IDishRepository.class);
         platoEntityMapper = mock(IPlatoEntityMapper.class);
         platoJpaAdapter = new DishJpaAdapter(platoRepository, platoEntityMapper);
     }
@@ -99,7 +99,7 @@ class DishJpaAdapterTest {
         Dish dish = mock(Dish.class);
         Page<DishEntity> page = new PageImpl<>(List.of(entity));
 
-        when(platoRepository.findAllByIdRestauranteAndCategoriaPlato(eq(restaurantId), eq(category), any(Pageable.class)))
+        when(platoRepository.findAllByIdRestaurantAndCategoryDish(eq(restaurantId), eq(category), any(Pageable.class)))
                 .thenReturn(page);
         when(platoEntityMapper.toPlato(entity)).thenReturn(dish);
 
@@ -118,7 +118,7 @@ class DishJpaAdapterTest {
         Dish dish = mock(Dish.class);
         Page<DishEntity> page = new PageImpl<>(List.of(entity));
 
-        when(platoRepository.findAllByIdRestaurante(eq(restaurantId), any(Pageable.class))).thenReturn(page);
+        when(platoRepository.findAllByIdRestaurant(eq(restaurantId), any(Pageable.class))).thenReturn(page);
         when(platoEntityMapper.toPlato(entity)).thenReturn(dish);
 
         PageModel<Dish> result = platoJpaAdapter.findDishesByRestaurantAndOptionalCategory(restaurantId, "", request);
