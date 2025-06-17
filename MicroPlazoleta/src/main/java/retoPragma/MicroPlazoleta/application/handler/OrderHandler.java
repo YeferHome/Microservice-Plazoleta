@@ -66,4 +66,9 @@ public class OrderHandler implements IOrderAppHandler {
         Order order = orderServicePort.markOrderAsDelivered(orderId, pin);
         return orderResponseMapper.toOrderResponseDto(order);
     }
+    @Override
+    public OrderResponseDto cancelOrder(Long orderId) {
+        Order order = orderServicePort.cancelOrder(orderId);
+        return orderResponseMapper.toOrderResponseDto(order);
+    }
 }
