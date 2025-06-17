@@ -11,4 +11,8 @@ public interface IRestaurantPersistencePort {
     PageModel<Restaurant> findAllRestaurantsOrderedByName(PageRequestModel pageRequestModel);
     boolean platoBelongsRestaurant(Long idDish, Long idRestaurant);
     boolean employeeBelongsRestaurant(Long idRestaurant);
+    Restaurant findLastInsertedByUserId(Long idUser);
+    Restaurant findByUserId(Long userId);
+    boolean existsById(Long restaurantId);
+
 }

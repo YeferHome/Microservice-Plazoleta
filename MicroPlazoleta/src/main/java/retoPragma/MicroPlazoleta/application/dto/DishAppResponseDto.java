@@ -8,11 +8,11 @@ import lombok.Setter;
 @Setter
 @AllArgsConstructor
 public class DishAppResponseDto {
-    private String nombrePlato;
-    private String descripcionPlato;
-    private Long precioPlato;
-    private String urlPlato;
-    private String categoriaPlato;
-    private Long idRestaurante;
-    private Long idUsuario;
+    private String nameDish;
+    private String descriptionDish;
+    private Long priceDish;
+    private String urlDish;
+    private String categoryDish;
+    private Long idRestaurant;
+    private Long idUser;
 }

@@ -30,15 +30,18 @@ public class SecurityConfiguration {
                         .requestMatchers(
                                 "/swagger-ui/**",
                                 "/v3/api-docs/**",
-                                "/restauranteApp/all",
-                                "/platoApp/all",
-                                "/restaurantes/all",
-                                "/platoApp/restaurantes/{id}/menu",
-                                "/pedidoApp/savePedido",
-                                "/pedidoApp/estado"
+                                "/restaurantApp/all",
+                                "/dishApp/all",
+                                "/notifications/**",
+                                "/restaurants/all",
+                                "/dishApp/restaurants/{id}/menu",
+                                "/orderApp/saveOrder",
+                                "/orderApp/**",
+                                "/restaurantApp/**",
+                                "/orderApp/asignEmployee/**"
                         )
                         .permitAll()
-                        .requestMatchers(HttpMethod.GET, "/platoApp/restaurantes/{idRestaurante}/menu").hasRole("CLIENTE")
+                        .requestMatchers(HttpMethod.GET, "/dishApp/restaurants/{idRestaurant}/menu").hasRole("CLIENTE")
                         .anyRequest().authenticated()
                 )
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))

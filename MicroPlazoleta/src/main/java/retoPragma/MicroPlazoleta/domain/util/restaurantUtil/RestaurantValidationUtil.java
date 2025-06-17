@@ -3,6 +3,7 @@ package retoPragma.MicroPlazoleta.domain.util.restaurantUtil;
 import retoPragma.MicroPlazoleta.domain.api.IUserServicePort;
 import retoPragma.MicroPlazoleta.domain.model.Restaurant;
 import retoPragma.MicroPlazoleta.domain.spi.IRestaurantPersistencePort;
+import retoPragma.MicroPlazoleta.domain.util.exception.PedidoException.EmpleadoPerteneceRestauranteException;
 import retoPragma.MicroPlazoleta.domain.util.exception.RestaurantException.DocumentException;
 import retoPragma.MicroPlazoleta.domain.util.exception.RestaurantException.NameRestaurantException;
 import retoPragma.MicroPlazoleta.domain.util.exception.RestaurantException.NoOwnerException;

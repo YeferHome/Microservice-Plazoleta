@@ -10,4 +10,5 @@ public interface IOrderPersistencePort {
     Order saveOrder(Order order);
     boolean userHaveOrderActive(Long idUser);
     PageModel<Order> findOrderByStateRestaurant(EstateOrder estate, Long restaurantId, PageRequestModel pageRequestModel);
+    Order findById(Long idOrder);
 }

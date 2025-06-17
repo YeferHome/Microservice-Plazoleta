@@ -3,6 +3,7 @@ package retoPragma.MicroPlazoleta.application.mapper;
 import org.mapstruct.Mapper;
 import org.mapstruct.ReportingPolicy;
 import retoPragma.MicroPlazoleta.application.dto.RestaurantAppResponseDto;
+import retoPragma.MicroPlazoleta.application.dto.RestaurantIdResponseDto;
 import retoPragma.MicroPlazoleta.domain.model.Restaurant;
 
 @Mapper(componentModel = "spring",
@@ -10,4 +11,5 @@ import retoPragma.MicroPlazoleta.domain.model.Restaurant;
         unmappedSourcePolicy = ReportingPolicy.IGNORE)
 public interface IRestaurantAppResponseMapper {
     RestaurantAppResponseDto toRestaurantAppResponseDto(Restaurant restaurant);
+    RestaurantIdResponseDto toRestaurantIdResponseDto(Restaurant restaurant);
 }

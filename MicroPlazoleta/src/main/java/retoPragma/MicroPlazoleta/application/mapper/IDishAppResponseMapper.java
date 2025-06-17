@@ -13,7 +13,7 @@ import java.util.List;
 @Mapper(componentModel = "spring",
         unmappedTargetPolicy = ReportingPolicy.IGNORE,
         unmappedSourcePolicy = ReportingPolicy.IGNORE)
-public interface IPlatoAppResponseMapper {
+public interface IDishAppResponseMapper {
 
     DishAppResponseDto toDishAppResponseDto(Dish dish);
     DishUpdateResponseDto toDishUpdateResponseDto(Dish dish);

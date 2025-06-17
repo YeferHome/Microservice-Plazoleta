@@ -6,7 +6,7 @@ import lombok.Setter;
 @Getter
 @Setter
 public class OrderItemRequestDto {
-    private Long idPlato;
-    private Long idRestaurante;
-    private int cantidad;
+    private Long idDish;
+    private Long idRestaurant;
+    private int amount;
 }

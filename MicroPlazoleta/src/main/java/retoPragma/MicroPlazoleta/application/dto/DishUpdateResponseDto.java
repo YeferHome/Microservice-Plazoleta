@@ -6,7 +6,7 @@ import lombok.Setter;
 @Getter
 @Setter
 public class DishUpdateResponseDto {
-    private String nombrePlato;
-    private String descripcionPlato;
-    private Long precioPlato;
+    private String nameDish;
+    private String descriptionDish;
+    private Long priceDish;
 }

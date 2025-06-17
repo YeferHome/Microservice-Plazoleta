@@ -8,22 +8,23 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Entity
-@Table(name = "restaurante")
+@Table(name = "restaurant")
 @NoArgsConstructor
 @AllArgsConstructor
 @Getter
 @Setter
-public class RestauranteEntity {
+public class RestaurantEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long idRestaurante;
+    @Column(name = "id")
+    private Long idRestaurant;
 
-    private String nombreRestaurante;
+    private String nameRestaurant;
     private Long nit;
-    private String direccion;
-    private Long telefonoRestaurante;
+    private String address;
+    private Long phoneRestaurant;
     private String urlLogo;
-    private Long idUsuario;
+    private Long idUser;
 
 }

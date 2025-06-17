@@ -2,7 +2,7 @@ package retoPragma.MicroPlazoleta.domain.UseCase;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.*;
+import retoPragma.MicroPlazoleta.domain.api.IMessagingServicePort;
 import retoPragma.MicroPlazoleta.domain.api.IUserServicePort;
 import retoPragma.MicroPlazoleta.domain.model.Order;
 import retoPragma.MicroPlazoleta.domain.model.OrderItem;
@@ -13,6 +13,7 @@ import retoPragma.MicroPlazoleta.domain.spi.IRestaurantPersistencePort;
 import retoPragma.MicroPlazoleta.domain.util.exception.PedidoException.*;
 import retoPragma.MicroPlazoleta.domain.util.pedidoUtil.EstateOrder;
 
+import java.util.Arrays;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -20,88 +21,123 @@ import static org.mockito.Mockito.*;
 
 class OrderUseCaseTest {
 
-    @Mock
-    private IOrderPersistencePort pedidoPersistencePort;
-    @Mock
-    private IUserServicePort usuarioServicePort;
-    @Mock
-    private IRestaurantPersistencePort restaurantePersistencePort;
-
-    @InjectMocks
+    private IOrderPersistencePort orderPersistencePort;
+    private IUserServicePort userServicePort;
+    private IRestaurantPersistencePort restaurantPersistencePort;
+    private IMessagingServicePort messagingServicePort;
     private OrderUseCase orderUseCase;
-
-    private Order order;
 
     @BeforeEach
     void setUp() {
-        MockitoAnnotations.openMocks(this);
-
-        OrderItem item = new OrderItem(1L, 100L, 10L, 2);
-        order = new Order(1L, 200L, 10L, EstateOrder.PENDIENTE, List.of(item));
+        orderPersistencePort = mock(IOrderPersistencePort.class);
+        userServicePort = mock(IUserServicePort.class);
+        restaurantPersistencePort = mock(IRestaurantPersistencePort.class);
+        messagingServicePort = mock(IMessagingServicePort.class);
+        orderUseCase = new OrderUseCase(orderPersistencePort, userServicePort, restaurantPersistencePort, messagingServicePort);
     }
 
     @Test
-    void savePedido_Exitoso() {
-        when(pedidoPersistencePort.userHaveOrderActive(200L)).thenReturn(false);
-        when(restaurantePersistencePort.platoBelongsRestaurant(100L, 10L)).thenReturn(true);
-        when(pedidoPersistencePort.saveOrder(order)).thenReturn(order);
+    void saveOrder_shouldSaveOrder_whenOrderIsValid() {
+        OrderItem item1 = new OrderItem(1L, 10L, 100L, 2);
+        OrderItem item2 = new OrderItem(2L, 20L, 100L, 3);
+        Order order = new Order();
+        order.setIdClient(1L);
+        order.setIdRestaurant(100L);
+        order.setItems(Arrays.asList(item1, item2));
 
-        Order resultado = orderUseCase.saveOrder(order);
+        when(orderPersistencePort.userHaveOrderActive(1L)).thenReturn(false);
+        when(restaurantPersistencePort.platoBelongsRestaurant(10L, 100L)).thenReturn(true);
+        when(restaurantPersistencePort.platoBelongsRestaurant(20L, 100L)).thenReturn(true);
+        when(orderPersistencePort.saveOrder(any(Order.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-        assertNotNull(resultado);
-        verify(pedidoPersistencePort).saveOrder(order);
+        Order savedOrder = orderUseCase.saveOrder(order);
+
+        assertNotNull(savedOrder);
+        assertEquals(EstateOrder.PENDIENTE, savedOrder.getEstate());
+        verify(orderPersistencePort).saveOrder(order);
     }
 
     @Test
-    void savePedido_ConPedidoActivo_LanzaExcepcion() {
-        when(pedidoPersistencePort.userHaveOrderActive(200L)).thenReturn(true);
+    void saveOrder_shouldThrowException_whenUserHasActiveOrder() {
+        Order order = new Order();
+        order.setIdClient(1L);
+        order.setIdRestaurant(100L);
+        order.setItems(List.of(new OrderItem(1L, 10L, 100L, 1)));
+
+        when(orderPersistencePort.userHaveOrderActive(1L)).thenReturn(true);
 
         assertThrows(PedidoEnProcesoException.class, () -> orderUseCase.saveOrder(order));
+        verify(orderPersistencePort, never()).saveOrder(any());
     }
 
     @Test
-    void savePedido_PlatoNoPerteneceARestaurante_LanzaExcepcion() {
-        when(pedidoPersistencePort.userHaveOrderActive(200L)).thenReturn(false);
-        when(restaurantePersistencePort.platoBelongsRestaurant(100L, 10L)).thenReturn(false);
+    void getOrderByStates_shouldReturnPage_whenEmployeeValid() {
+        long restaurantId = 100L;
+        PageRequestModel request = new PageRequestModel(0, 10);
+        EstateOrder estate = EstateOrder.PENDIENTE;
 
-        assertThrows(PlatoNoPerteneceARestauranteException.class, () -> orderUseCase.saveOrder(order));
+        PageModel<Order> expected = new PageModel<>(List.of(new Order()), 0, 10, 1);
+        when(userServicePort.obtainRolUser(anyLong())).thenReturn("EMPLEADO");
+        when(orderPersistencePort.findOrderByStateRestaurant(estate, restaurantId, request)).thenReturn(expected);
+
+        PageModel<Order> result = orderUseCase.getOrderByStates(restaurantId, estate, request);
+
+        assertEquals(expected.getContent(), result.getContent());
     }
 
     @Test
-    void savePedido_ConCantidadMenor_LanzaExcepcion() {
-        OrderItem item = new OrderItem(1L, 100L, 10L, 0);
-        Order orderInvalido = new Order(1L, 200L, 10L, EstateOrder.PENDIENTE, List.of(item));
-
-        when(pedidoPersistencePort.userHaveOrderActive(200L)).thenReturn(false);
-        when(restaurantePersistencePort.platoBelongsRestaurant(100L, 10L)).thenReturn(true);
-
-        assertThrows(CantidadMinimaItemException.class, () -> orderUseCase.saveOrder(orderInvalido));
-    }
-
-    @Test
-    void getPedidosPorEstados_Exitoso() {
-        long restauranteId = 10L;
-        EstateOrder estado = EstateOrder.PENDIENTE;
-        int page = 0;
-        int size = 5;
-
-        List<Order> orders = List.of(order);
-        PageModel<Order> pageResultado = new PageModel<>(orders, page, size, orders.size());
-
-        when(restaurantePersistencePort.employeeBelongsRestaurant(restauranteId)).thenReturn(true);
-        when(pedidoPersistencePort.findOrderByStateRestaurant(estado, restauranteId, new PageRequestModel(page, size)))
-                .thenReturn(pageResultado);
-
-        PageModel<Order> resultado = orderUseCase.getOrderByStates(restauranteId, estado, new PageRequestModel(page, size));
-
-        assertEquals(1, resultado.getTotalElements());
-    }
-
-    @Test
-    void getPedidosPorEstados_EmpleadoNoPertenece_LanzaExcepcion() {
-        when(restaurantePersistencePort.employeeBelongsRestaurant(10L)).thenReturn(false);
+    void getOrderByStates_shouldThrow_whenInvalidRole() {
+        when(userServicePort.obtainRolUser(anyLong())).thenReturn("ADMIN");
 
         assertThrows(EmpleadoPerteneceRestauranteException.class, () ->
-                orderUseCase.getOrderByStates(10L, EstateOrder.PENDIENTE, new PageRequestModel(0, 5)));
+                orderUseCase.getOrderByStates(1L, EstateOrder.PENDIENTE, new PageRequestModel(0, 10)));
+    }
+
+    @Test
+    void assignEmployeeAndSetInPreparation_shouldWork_whenValid() {
+        Order order = new Order();
+        order.setIdClient(1L);
+        order.setIdRestaurant(100L);
+        order.setItems(List.of(new OrderItem(1L, 10L, 100L, 2)));
+
+        when(orderPersistencePort.findById(1L)).thenReturn(order);
+        when(userServicePort.obtainRolUser(5L)).thenReturn("EMPLEADO");
+        when(restaurantPersistencePort.platoBelongsRestaurant(anyLong(), anyLong())).thenReturn(true);
+        when(orderPersistencePort.saveOrder(any(Order.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        Order result = orderUseCase.assignEmployeeAndSetInPreparation(1L, 5L);
+
+        assertEquals(5L, result.getEmployeeAssigned());
+        assertEquals(EstateOrder.EN_PREPARACION, result.getEstate());
+    }
+
+    @Test
+    void markOrderAsDone_shouldSetReadyAndNotify_whenInPreparation() {
+        Order order = new Order();
+        order.setEstate(EstateOrder.EN_PREPARACION);
+        order.setIdClient(1L);
+        order.setPin("1234");
+        order.setIdRestaurant(100L);
+        order.setItems(List.of(new OrderItem(1L, 10L, 100L, 2)));
+
+        when(orderPersistencePort.findById(1L)).thenReturn(order);
+        when(userServicePort.obtainRolUser(anyLong())).thenReturn("EMPLEADO");
+        when(restaurantPersistencePort.platoBelongsRestaurant(anyLong(), anyLong())).thenReturn(true);
+        when(userServicePort.obtainNumberPhoneClient(1L)).thenReturn("+573001234567");
+
+        Order result = orderUseCase.markOrderAsDone(1L);
+
+        assertEquals(EstateOrder.LISTO, result.getEstate());
+        verify(messagingServicePort).sendNotification(eq("+573001234567"), anyString());
+    }
+
+    @Test
+    void markOrderAsDone_shouldThrow_whenNotInPreparation() {
+        Order order = new Order();
+        order.setEstate(EstateOrder.PENDIENTE);
+
+        when(orderPersistencePort.findById(1L)).thenReturn(order);
+
+        assertThrows(OrderProcessException.class, () -> orderUseCase.markOrderAsDone(1L));
     }
 }

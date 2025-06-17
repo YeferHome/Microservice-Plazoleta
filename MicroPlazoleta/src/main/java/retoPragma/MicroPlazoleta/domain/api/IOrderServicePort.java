@@ -9,4 +9,6 @@ public interface IOrderServicePort {
 
     Order saveOrder(Order order);
     PageModel<Order> getOrderByStates(long restaurantId, EstateOrder estate, PageRequestModel pageRequestModel);
+    Order assignEmployeeAndSetInPreparation(Long orderId, Long employeeId);
+    Order markOrderAsDone(Long orderId, String token);
 }

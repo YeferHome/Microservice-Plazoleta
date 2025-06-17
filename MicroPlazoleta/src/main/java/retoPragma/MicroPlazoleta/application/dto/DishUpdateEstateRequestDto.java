@@ -6,5 +6,5 @@ import lombok.Setter;
 @Getter
 @Setter
 public class DishUpdateEstateRequestDto {
-    private boolean estado;
+    private boolean estate;
 }

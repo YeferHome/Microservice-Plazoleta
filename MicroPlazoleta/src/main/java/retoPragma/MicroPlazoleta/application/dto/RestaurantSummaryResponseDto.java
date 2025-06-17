@@ -10,6 +10,6 @@ import lombok.Setter;
 @NoArgsConstructor
 @AllArgsConstructor
 public class RestaurantSummaryResponseDto {
-    private String nombreRestaurante;
+    private String nameRestaurant;
     private String urlLogo;
 }

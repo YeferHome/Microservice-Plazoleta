@@ -8,5 +8,5 @@ import lombok.Setter;
 @AllArgsConstructor
 public class DishUpdateEstateResponseDto {
 
-    private boolean estado;
+    private boolean estate;
 }

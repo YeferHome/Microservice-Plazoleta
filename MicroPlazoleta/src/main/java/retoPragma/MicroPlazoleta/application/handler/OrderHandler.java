@@ -49,4 +49,16 @@ public class OrderHandler implements IOrderAppHandler {
                 pageModel.getTotalElements()
         );
     }
+
+    @Override
+    public OrderResponseDto assignEmployeeAndSetInPreparation(Long orderId, Long employeeId) {
+        Order order = orderServicePort.assignEmployeeAndSetInPreparation(orderId, employeeId);
+        return orderResponseMapper.toOrderResponseDto(order);
+    }
+
+    @Override
+    public OrderResponseDto markOrderAsDone(Long orderId, String token) {
+        Order order = orderServicePort.markOrderAsDone(orderId, token);
+        return orderResponseMapper.toOrderResponseDto(order);
+    }
 }

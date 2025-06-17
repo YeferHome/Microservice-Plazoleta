@@ -9,10 +9,10 @@ import retoPragma.MicroPlazoleta.domain.model.PageModel;
 import retoPragma.MicroPlazoleta.domain.model.PageRequestModel;
 import retoPragma.MicroPlazoleta.domain.model.Restaurant;
 import retoPragma.MicroPlazoleta.domain.util.exception.RestaurantException.NoRetaurantExcepcion;
-import retoPragma.MicroPlazoleta.infrastructure.output.entity.RestauranteEntity;
+import retoPragma.MicroPlazoleta.infrastructure.output.entity.RestaurantEntity;
 import retoPragma.MicroPlazoleta.infrastructure.output.mapper.IRestauranteEntityMapper;
-import retoPragma.MicroPlazoleta.infrastructure.output.repository.IPlatoRepository;
-import retoPragma.MicroPlazoleta.infrastructure.output.repository.IRestauranteRepository;
+import retoPragma.MicroPlazoleta.infrastructure.output.repository.IDishRepository;
+import retoPragma.MicroPlazoleta.infrastructure.output.repository.IRestaurantRepository;
 
 import java.util.List;
 import java.util.Optional;
@@ -22,46 +22,46 @@ import static org.mockito.Mockito.*;
 
 class RestaurantJpaAdapterTest {
 
-    private IRestauranteRepository restauranteRepository;
+    private IRestaurantRepository restauranteRepository;
     private IRestauranteEntityMapper restauranteEntityMapper;
-    private IPlatoRepository platoRepository;
+    private IDishRepository platoRepository;
 
     private RestaurantJpaAdapter restauranteJpaAdapter;
 
     @BeforeEach
     void setUp() {
-        restauranteRepository = mock(IRestauranteRepository.class);
+        restauranteRepository = mock(IRestaurantRepository.class);
         restauranteEntityMapper = mock(IRestauranteEntityMapper.class);
-        platoRepository = mock(IPlatoRepository.class);
+        platoRepository = mock(IDishRepository.class);
         restauranteJpaAdapter = new RestaurantJpaAdapter(restauranteRepository, restauranteEntityMapper, platoRepository);
     }
 
     @Test
     void saveRestaurante() {
         Restaurant restaurant = mock(Restaurant.class);
-        RestauranteEntity restauranteEntity = mock(RestauranteEntity.class);
+        RestaurantEntity restaurantEntity = mock(RestaurantEntity.class);
 
-        when(restauranteEntityMapper.toRestauranteEntity(restaurant)).thenReturn(restauranteEntity);
+        when(restauranteEntityMapper.toRestaurantEntity(restaurant)).thenReturn(restaurantEntity);
 
         restauranteJpaAdapter.saveRestaurant(restaurant);
 
-        verify(restauranteEntityMapper).toRestauranteEntity(restaurant);
-        verify(restauranteRepository).save(restauranteEntity);
+        verify(restauranteEntityMapper).toRestaurantEntity(restaurant);
+        verify(restauranteRepository).save(restaurantEntity);
     }
 
     @Test
     void findRestauranteById_success() {
         Long id = 1L;
-        RestauranteEntity restauranteEntity = mock(RestauranteEntity.class);
+        RestaurantEntity restaurantEntity = mock(RestaurantEntity.class);
         Restaurant restaurant = mock(Restaurant.class);
 
-        when(restauranteRepository.findById(id)).thenReturn(Optional.of(restauranteEntity));
-        when(restauranteEntityMapper.toRestaurante(restauranteEntity)).thenReturn(restaurant);
+        when(restauranteRepository.findById(id)).thenReturn(Optional.of(restaurantEntity));
+        when(restauranteEntityMapper.toRestaurant(restaurantEntity)).thenReturn(restaurant);
 
         Restaurant result = restauranteJpaAdapter.findRestaurantById(id);
 
         verify(restauranteRepository).findById(id);
-        verify(restauranteEntityMapper).toRestaurante(restauranteEntity);
+        verify(restauranteEntityMapper).toRestaurant(restaurantEntity);
         assertEquals(restaurant, result);
     }
 
@@ -74,25 +74,25 @@ class RestaurantJpaAdapterTest {
         assertThrows(NoRetaurantExcepcion.class, () -> restauranteJpaAdapter.findRestaurantById(id));
 
         verify(restauranteRepository).findById(id);
-        verify(restauranteEntityMapper, never()).toRestaurante(any());
+        verify(restauranteEntityMapper, never()).toRestaurant(any());
     }
 
     @Test
     void findAllRestaurantsOrderedByName() {
-        RestauranteEntity restauranteEntity = mock(RestauranteEntity.class);
+        RestaurantEntity restaurantEntity = mock(RestaurantEntity.class);
         Restaurant restaurant = mock(Restaurant.class);
 
-        List<RestauranteEntity> entities = List.of(restauranteEntity);
-        Page<RestauranteEntity> pageResult = new PageImpl<>(entities);
+        List<RestaurantEntity> entities = List.of(restaurantEntity);
+        Page<RestaurantEntity> pageResult = new PageImpl<>(entities);
 
         when(restauranteRepository.findAll(any(Pageable.class))).thenReturn(pageResult);
-        when(restauranteEntityMapper.toRestaurante(restauranteEntity)).thenReturn(restaurant);
+        when(restauranteEntityMapper.toRestaurant(restaurantEntity)).thenReturn(restaurant);
 
         PageRequestModel pageRequestModel = new PageRequestModel(0, 5);
         PageModel<Restaurant> result = restauranteJpaAdapter.findAllRestaurantsOrderedByName(pageRequestModel);
 
         verify(restauranteRepository).findAll(any(Pageable.class));
-        verify(restauranteEntityMapper).toRestaurante(restauranteEntity);
+        verify(restauranteEntityMapper).toRestaurant(restaurantEntity);
 
         assertNotNull(result);
         assertEquals(1, result.getContent().size());
@@ -104,11 +104,11 @@ class RestaurantJpaAdapterTest {
         Long idPlato = 1L;
         Long idRestaurante = 10L;
 
-        when(platoRepository.existsByIdPlatoAndIdRestaurante(idPlato, idRestaurante)).thenReturn(true);
+        when(platoRepository.existsByIdDishAndIdRestaurant(idPlato, idRestaurante)).thenReturn(true);
 
         boolean result = restauranteJpaAdapter.platoBelongsRestaurant(idPlato, idRestaurante);
 
-        verify(platoRepository).existsByIdPlatoAndIdRestaurante(idPlato, idRestaurante);
+        verify(platoRepository).existsByIdDishAndIdRestaurant(idPlato, idRestaurante);
         assertTrue(result);
     }
 
@@ -117,11 +117,11 @@ class RestaurantJpaAdapterTest {
         Long idPlato = 1L;
         Long idRestaurante = 10L;
 
-        when(platoRepository.existsByIdPlatoAndIdRestaurante(idPlato, idRestaurante)).thenReturn(false);
+        when(platoRepository.existsByIdDishAndIdRestaurant(idPlato, idRestaurante)).thenReturn(false);
 
         boolean result = restauranteJpaAdapter.platoBelongsRestaurant(idPlato, idRestaurante);
 
-        verify(platoRepository).existsByIdPlatoAndIdRestaurante(idPlato, idRestaurante);
+        verify(platoRepository).existsByIdDishAndIdRestaurant(idPlato, idRestaurante);
         assertFalse(result);
     }
 
@@ -129,7 +129,7 @@ class RestaurantJpaAdapterTest {
     void elEmpleadoPerteneceAlRestaurante_true() {
         Long restauranteId = 1L;
 
-        when(restauranteRepository.findById(restauranteId)).thenReturn(Optional.of(mock(RestauranteEntity.class)));
+        when(restauranteRepository.findById(restauranteId)).thenReturn(Optional.of(mock(RestaurantEntity.class)));
 
         boolean result = restauranteJpaAdapter.employeeBelongsRestaurant(restauranteId);
 

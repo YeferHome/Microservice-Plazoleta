@@ -16,7 +16,7 @@ import retoPragma.MicroPlazoleta.domain.util.pedidoUtil.EstateOrder;
 
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.*;
 
 class OrderHandlerTest {
@@ -35,68 +35,90 @@ class OrderHandlerTest {
     }
 
     @Test
-    void saveOrder() {
+    void saveOrder_shouldReturnMappedResponse() {
         OrderRequestDto requestDto = new OrderRequestDto();
-        Order domainOrder = new Order();
-        Order createdOrder = new Order();
+        Order order = new Order();
+        Order savedOrder = new Order();
 
-        List<OrderItemResponseDto> itemsResponse = List.of();
-
+        OrderItemResponseDto itemDto = new OrderItemResponseDto(10L, 2);
         OrderResponseDto expectedResponse = new OrderResponseDto(
-                1L,
-                EstateOrder.PENDIENTE,
-                10L,
-                20L,
-                itemsResponse
+                1L, EstateOrder.PENDIENTE, 1L, 100L, List.of(itemDto), null
         );
 
-        when(orderRequestMapper.toOrder(requestDto)).thenReturn(domainOrder);
-        when(orderServicePort.saveOrder(domainOrder)).thenReturn(createdOrder);
-        when(orderResponseMapper.toOrderResponseDto(createdOrder)).thenReturn(expectedResponse);
+        when(orderRequestMapper.toOrder(requestDto)).thenReturn(order);
+        when(orderServicePort.saveOrder(order)).thenReturn(savedOrder);
+        when(orderResponseMapper.toOrderResponseDto(savedOrder)).thenReturn(expectedResponse);
 
         OrderResponseDto result = orderHandler.saveOrder(requestDto);
 
-        assertNotNull(result);
-        assertEquals(expectedResponse.getIdPedido(), result.getIdPedido());
-        assertEquals(expectedResponse.getEstado(), result.getEstado());
-        assertEquals(expectedResponse.getIdCliente(), result.getIdCliente());
-        assertEquals(expectedResponse.getIdRestaurante(), result.getIdRestaurante());
-        assertEquals(expectedResponse.getItems(), result.getItems());
-
-        verify(orderRequestMapper).toOrder(requestDto);
-        verify(orderServicePort).saveOrder(domainOrder);
-        verify(orderResponseMapper).toOrderResponseDto(createdOrder);
+        assertEquals(expectedResponse, result);
     }
 
     @Test
-    void getOrderByEstate() {
+    void getOrderByEstate_shouldReturnPageResponseDto() {
         Long restaurantId = 1L;
-        EstateOrder state = EstateOrder.PENDIENTE;
-        int page = 0;
-        int size = 10;
+        EstateOrder estate = EstateOrder.PENDIENTE;
+        int page = 0, size = 5;
 
-        Order order1 = new Order();
-        Order order2 = new Order();
-        List<Order> domainOrders = List.of(order1, order2);
-        PageModel<Order> pageModel = new PageModel<>(domainOrders, page, size, domainOrders.size());
+        Order order = new Order();
+        PageModel<Order> pageModel = new PageModel<>(List.of(order), page, size, 1);
 
-        OrderResponseDto responseDto1 = new OrderResponseDto(1L, state, 10L, 100L, List.of());
-        OrderResponseDto responseDto2 = new OrderResponseDto(2L, state, 11L, 101L, List.of());
+        OrderItemResponseDto itemDto = new OrderItemResponseDto(10L, 2);
+        OrderResponseDto responseDto = new OrderResponseDto(
+                1L, estate, 1L, restaurantId, List.of(itemDto), null
+        );
 
-        when(orderServicePort.getOrderByStates(eq(restaurantId), eq(state), any(PageRequestModel.class)))
+        when(orderServicePort.getOrderByStates(eq(restaurantId), eq(estate), any(PageRequestModel.class)))
                 .thenReturn(pageModel);
-        when(orderResponseMapper.toOrderResponseDto(order1)).thenReturn(responseDto1);
-        when(orderResponseMapper.toOrderResponseDto(order2)).thenReturn(responseDto2);
+        when(orderResponseMapper.toOrderResponseDto(order)).thenReturn(responseDto);
 
-        PageResponseDto<OrderResponseDto> result = orderHandler.getOrderByEstate(restaurantId, state, page, size);
+        PageResponseDto<OrderResponseDto> result = orderHandler.getOrderByEstate(restaurantId, estate, page, size);
 
-        assertNotNull(result);
-        assertEquals(2, result.getContent().size());
-        assertEquals(responseDto1.getIdPedido(), result.getContent().get(0).getIdPedido());
-        assertEquals(responseDto2.getIdPedido(), result.getContent().get(1).getIdPedido());
+        assertEquals(1, result.getContent().size());
+        assertEquals(responseDto, result.getContent().get(0));
+        assertEquals(page, result.getPageNumber());
+        assertEquals(size, result.getPageSize());
+        assertEquals(1, result.getTotalElements());
+    }
 
-        verify(orderServicePort).getOrderByStates(eq(restaurantId), eq(state), any(PageRequestModel.class));
-        verify(orderResponseMapper).toOrderResponseDto(order1);
-        verify(orderResponseMapper).toOrderResponseDto(order2);
+    @Test
+    void assignEmployeeAndSetInPreparation_shouldReturnMappedResponse() {
+        Long orderId = 1L;
+        Long employeeId = 2L;
+        Order order = new Order();
+
+        OrderItemResponseDto itemDto = new OrderItemResponseDto(10L, 2);
+        OrderResponseDto expectedResponse = new OrderResponseDto(
+                1L, EstateOrder.EN_PREPARACION, 1L, 100L, List.of(itemDto), employeeId
+        );
+
+        when(orderServicePort.assignEmployeeAndSetInPreparation(orderId, employeeId)).thenReturn(order);
+        when(orderResponseMapper.toOrderResponseDto(order)).thenReturn(expectedResponse);
+
+        OrderResponseDto result = orderHandler.assignEmployeeAndSetInPreparation(orderId, employeeId);
+
+        assertEquals(expectedResponse, result);
+        verify(orderServicePort).assignEmployeeAndSetInPreparation(orderId, employeeId);
+        verify(orderResponseMapper).toOrderResponseDto(order);
+    }
+
+    @Test
+    void markOrderAsDone_shouldReturnMappedResponse() {
+        Long orderId = 1L;
+        Order order = new Order();
+
+        OrderItemResponseDto itemDto = new OrderItemResponseDto(10L, 2);
+        OrderResponseDto expectedResponse = new OrderResponseDto(
+                1L, EstateOrder.LISTO, 1L, 100L, List.of(itemDto), null
+        );
+
+        when(orderServicePort.markOrderAsDone(orderId)).thenReturn(order);
+        when(orderResponseMapper.toOrderResponseDto(order)).thenReturn(expectedResponse);
+
+        OrderResponseDto result = orderHandler.markOrderAsDone(orderId);
+
+        assertEquals(expectedResponse, result);
+        verify(orderServicePort).markOrderAsDone(orderId);
+        verify(orderResponseMapper).toOrderResponseDto(order);
     }
 }

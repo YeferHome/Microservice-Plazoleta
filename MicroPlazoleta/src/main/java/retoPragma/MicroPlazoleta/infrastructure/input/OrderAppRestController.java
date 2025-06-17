@@ -53,4 +53,36 @@ public class OrderAppRestController {
         PageResponseDto<OrderResponseDto> responseDto = orderAppHandler.getOrderByEstate(restaurantId, estate, page, size);
         return ResponseEntity.ok(responseDto);
     }
+
+    @Operation(summary = "Asignar pedido a Empleado")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Lista de pedidos",
+                    content = @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = PageResponseDto.class))),
+            @ApiResponse(responseCode = "400", description = "Error en los parámetros", content = @Content),
+            @ApiResponse(responseCode = "500", description = "Error interno del servidor", content = @Content)
+    })
+    @PutMapping("/asignEmployee/{orderId}/{employeeId}")
+    public ResponseEntity<OrderResponseDto> assignEmployeeAndSetInPreparation(
+            @PathVariable Long orderId,
+            @PathVariable Long employeeId) {
+        OrderResponseDto responseDto = orderAppHandler.assignEmployeeAndSetInPreparation(orderId, employeeId);
+        return ResponseEntity.ok(responseDto);
+    }
+    @Operation(summary = "Pedido hecho")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Orden lista",
+                    content = @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = PageResponseDto.class))),
+            @ApiResponse(responseCode = "400", description = "Error en los parámetros", content = @Content),
+            @ApiResponse(responseCode = "500", description = "Error interno del servidor", content = @Content)
+    })
+    @PutMapping("/markOrderAsDone/{orderId}")
+    public ResponseEntity<OrderResponseDto> markOrderAsDone(
+            @PathVariable Long orderId,
+            @RequestHeader("Authorization") String token) {
+        OrderResponseDto responseDto = orderAppHandler.markOrderAsDone(orderId, token);
+        return ResponseEntity.ok(responseDto);
+
+    }
 }

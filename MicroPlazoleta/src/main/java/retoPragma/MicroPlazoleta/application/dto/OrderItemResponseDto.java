@@ -9,6 +9,6 @@ import lombok.Setter;
 @AllArgsConstructor
 public class OrderItemResponseDto {
 
-    private Long idPlato;
-    private int cantidad;
+    private Long idDish;
+    private int amount ;
 }

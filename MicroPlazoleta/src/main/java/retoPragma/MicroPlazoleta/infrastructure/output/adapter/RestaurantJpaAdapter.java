@@ -10,29 +10,29 @@ import retoPragma.MicroPlazoleta.domain.model.PageRequestModel;
 import retoPragma.MicroPlazoleta.domain.model.Restaurant;
 import retoPragma.MicroPlazoleta.domain.util.exception.RestaurantException.NoRetaurantExcepcion;
 import retoPragma.MicroPlazoleta.domain.spi.IRestaurantPersistencePort;
-import retoPragma.MicroPlazoleta.infrastructure.output.entity.RestauranteEntity;
+import retoPragma.MicroPlazoleta.infrastructure.output.entity.RestaurantEntity;
 import retoPragma.MicroPlazoleta.infrastructure.output.mapper.IRestauranteEntityMapper;
-import retoPragma.MicroPlazoleta.infrastructure.output.repository.IPlatoRepository;
-import retoPragma.MicroPlazoleta.infrastructure.output.repository.IRestauranteRepository;
+import retoPragma.MicroPlazoleta.infrastructure.output.repository.IDishRepository;
+import retoPragma.MicroPlazoleta.infrastructure.output.repository.IRestaurantRepository;
 
 import java.util.List;
 
 @RequiredArgsConstructor
 public class RestaurantJpaAdapter implements IRestaurantPersistencePort {
 
-    private final IRestauranteRepository restaurantRepository;
+    private final IRestaurantRepository restaurantRepository;
     private final IRestauranteEntityMapper restaurantEntityMapper;
-    private final IPlatoRepository platoRepository;
+    private final IDishRepository platoRepository;
 
     @Override
     public void saveRestaurant(Restaurant restaurant) {
-        restaurantRepository.save(restaurantEntityMapper.toRestauranteEntity(restaurant));
+        restaurantRepository.save(restaurantEntityMapper.toRestaurantEntity(restaurant));
     }
 
     @Override
     public Restaurant findRestaurantById(Long id) {
         return restaurantRepository.findById(id)
-                .map(restaurantEntityMapper::toRestaurante)
+                .map(restaurantEntityMapper::toRestaurant)
                 .orElseThrow(NoRetaurantExcepcion::new);
     }
 
@@ -44,10 +44,10 @@ public class RestaurantJpaAdapter implements IRestaurantPersistencePort {
                 Sort.by("nameRestaurant").ascending()
         );
 
-        Page<RestauranteEntity> pageResult = restaurantRepository.findAll(pageable);
+        Page<RestaurantEntity> pageResult = restaurantRepository.findAll(pageable);
 
         List<Restaurant> content = pageResult.getContent().stream()
-                .map(restaurantEntityMapper::toRestaurante)
+                .map(restaurantEntityMapper::toRestaurant)
                 .toList();
 
         return new PageModel<>(
@@ -60,11 +60,33 @@ public class RestaurantJpaAdapter implements IRestaurantPersistencePort {
 
     @Override
     public boolean platoBelongsRestaurant(Long idDish, Long idRestaurant) {
-        return platoRepository.existsByIdPlatoAndIdRestaurante(idDish, idRestaurant);
+        return platoRepository.existsByIdDishAndIdRestaurant(idDish, idRestaurant);
     }
 
     @Override
     public boolean employeeBelongsRestaurant(Long idRestaurant) {
         return restaurantRepository.findById(idRestaurant).isPresent();
     }
+
+    @Override
+    public Restaurant findLastInsertedByUserId(Long idUser) {
+        return restaurantRepository
+                .findTopByIdUserOrderByIdRestaurantDesc(idUser)
+                .map(restaurantEntityMapper::toRestaurant)
+                .orElseThrow(() -> new RuntimeException("No se encontró un restaurante para el usuario con id: " + idUser));
+    }
+
+    @Override
+    public Restaurant findByUserId(Long idUser) {
+        return restaurantRepository
+                .findByIdUser(idUser)
+                .map(restaurantEntityMapper::toRestaurant)
+                .orElseThrow(() -> new RuntimeException("No se encontró restaurante para el usuario con id: " + idUser));
+    }
+    @Override
+    public boolean existsById(Long restaurantId) {
+        return restaurantRepository.existsById(restaurantId);
+    }
+
+
 }

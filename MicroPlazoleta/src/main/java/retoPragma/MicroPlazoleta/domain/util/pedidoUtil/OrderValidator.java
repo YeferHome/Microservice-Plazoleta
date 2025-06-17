@@ -7,14 +7,24 @@ import retoPragma.MicroPlazoleta.domain.spi.IOrderPersistencePort;
 import retoPragma.MicroPlazoleta.domain.spi.IRestaurantPersistencePort;
 import retoPragma.MicroPlazoleta.domain.util.exception.PedidoException.*;
 
+import java.util.Random;
+
 import static retoPragma.MicroPlazoleta.domain.util.pedidoUtil.PedidoConstants.CANTIDAD_MINIMA;
 
 public class OrderValidator {
 
     private final IRestaurantPersistencePort restaurantePersistencePort;
+    private final IUserServicePort userServicePort;
 
     public OrderValidator(IUserServicePort userServicePort, IOrderPersistencePort orderPersistencePort, IRestaurantPersistencePort restaurantPersistencePort) {
         this.restaurantePersistencePort = restaurantPersistencePort;
+        this.userServicePort = userServicePort;
+    }
+
+    public String generarPinSeguridad() {
+        Random random = new Random();
+        int pin = 100000 + random.nextInt(900000);
+        return String.valueOf(pin);
     }
 
     public void validateOrder(Order order) {
@@ -51,5 +61,12 @@ public class OrderValidator {
             }
         }
     }
-}
 
+    public void validateRolEmployee(Long idEmployee) {
+        String rol = userServicePort.obtainRolUser(idEmployee);
+        if (rol == null || !rol.equals("EMPLEADO")) {
+            throw new EmpleadoPerteneceRestauranteException();
+        }
+
+    }
+}

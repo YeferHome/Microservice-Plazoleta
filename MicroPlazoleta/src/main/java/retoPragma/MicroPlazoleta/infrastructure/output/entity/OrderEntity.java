@@ -9,7 +9,7 @@ import retoPragma.MicroPlazoleta.domain.util.pedidoUtil.EstateOrder;
 import java.util.List;
 
 @Entity
-@Table(name = "order")
+@Table(name = "orders")
 @NoArgsConstructor
 @AllArgsConstructor
 @Getter
@@ -22,9 +22,11 @@ public class OrderEntity {
 
     private Long idClient;
     private Long idRestaurant;
+    private Long employeeAssigned;
 
     @Enumerated(EnumType.STRING)
     private EstateOrder estate;
+    private String pin;
 
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<OrderItemEntity> items;
