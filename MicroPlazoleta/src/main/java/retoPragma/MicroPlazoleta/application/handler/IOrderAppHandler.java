@@ -11,4 +11,5 @@ public interface IOrderAppHandler {
     PageResponseDto<OrderResponseDto> getOrderByEstate(Long restaurantId, EstateOrder estate, int page, int size);
     OrderResponseDto assignEmployeeAndSetInPreparation(Long orderId, Long employeeId);
     OrderResponseDto markOrderAsDone(Long orderId, String token);
+    OrderResponseDto markOrderAsDelivered(Long orderId, String pin);
 }

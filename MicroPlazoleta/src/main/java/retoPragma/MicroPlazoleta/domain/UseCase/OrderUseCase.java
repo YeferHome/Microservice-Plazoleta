@@ -92,4 +92,20 @@ public class OrderUseCase implements IOrderServicePort {
 
         return order;
     }
+    @Override
+    public Order markOrderAsDelivered(Long orderId, String pin) {
+        Order order = orderPersistencePort.findById(orderId);
+        orderValidator.validateOrder(order);
+
+        if (!EstateOrder.LISTO.equals(order.getEstate())) {
+            throw new OrderProcessException();
+        }
+
+        if (!order.getPin().equals(pin)) {
+            throw new PinInvalidateException();
+        }
+
+        order.setEstate(EstateOrder.ENTREGADO);
+        return orderPersistencePort.saveOrder(order);
+    }
 }

@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.*;
 import retoPragma.MicroPlazoleta.application.dto.OrderRequestDto;
 import retoPragma.MicroPlazoleta.application.dto.OrderResponseDto;
 import retoPragma.MicroPlazoleta.application.dto.PageResponseDto;
+import retoPragma.MicroPlazoleta.application.dto.PinRequestDto;
 import retoPragma.MicroPlazoleta.application.handler.IOrderAppHandler;
 import retoPragma.MicroPlazoleta.domain.util.pedidoUtil.EstateOrder;
 
@@ -84,5 +85,15 @@ public class OrderAppRestController {
         OrderResponseDto responseDto = orderAppHandler.markOrderAsDone(orderId, token);
         return ResponseEntity.ok(responseDto);
 
+    }
+
+
+    @PutMapping("/markOrderAsDelivered/{orderId}")
+    public ResponseEntity<OrderResponseDto> markOrderAsDelivered(
+            @PathVariable Long orderId,
+            @RequestBody PinRequestDto pinRequest
+    ) {
+        OrderResponseDto response = orderAppHandler.markOrderAsDelivered(orderId, pinRequest.getPin());
+        return ResponseEntity.ok(response);
     }
 }
