@@ -7,6 +7,7 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.springframework.http.ResponseEntity;
 import retoPragma.MicroPlazoleta.application.dto.*;
+
 import retoPragma.MicroPlazoleta.application.handler.IDishAppHandler;
 
 import java.util.List;
@@ -17,7 +18,7 @@ import static org.mockito.Mockito.*;
 class DishAppRestControllerTest {
 
     @Mock
-    private IDishAppHandler platoAppHandler;
+    private IDishAppHandler dishAppHandler;
 
     @InjectMocks
     private DishAppRestController dishAppRestController;
@@ -28,73 +29,71 @@ class DishAppRestControllerTest {
     }
 
     @Test
-    void savePlatoInPlatoApp() {
-        DishAppRequestDto requestDto = mock(DishAppRequestDto.class);
+    void saveDishInDishApp_shouldReturnCreated() {
+        DishAppRequestDto requestDto = new DishAppRequestDto();
 
-        doNothing().when(platoAppHandler).saveDishInDishApp(requestDto);
+        doNothing().when(dishAppHandler).saveDishInDishApp(requestDto);
 
         ResponseEntity<Void> response = dishAppRestController.saveDishInDishApp(requestDto);
 
-        verify(platoAppHandler, times(1)).saveDishInDishApp(requestDto);
+        verify(dishAppHandler).saveDishInDishApp(requestDto);
         assertEquals(201, response.getStatusCodeValue());
         assertNull(response.getBody());
     }
 
     @Test
-    void updatePlatoInPlatoApp() {
-        Long idPlato = 1L;
-        DishUpdateRequestDto requestDto = mock(DishUpdateRequestDto.class);
-        DishUpdateResponseDto responseDto = mock(DishUpdateResponseDto.class);
+    void updateDishInDishApp_shouldReturnUpdatedDish() {
+        Long idDish = 1L;
+        DishUpdateRequestDto requestDto = new DishUpdateRequestDto();
+        DishUpdateResponseDto expectedResponse = new DishUpdateResponseDto();
 
-        when(platoAppHandler.updateDishInDishApp(idPlato, requestDto)).thenReturn(responseDto);
+        when(dishAppHandler.updateDishInDishApp(idDish, requestDto)).thenReturn(expectedResponse);
 
-        ResponseEntity<DishUpdateResponseDto> response = dishAppRestController.updateDishInDishApp(idPlato, requestDto);
+        ResponseEntity<DishUpdateResponseDto> response = dishAppRestController.updateDishInDishApp(idDish, requestDto);
 
-        verify(platoAppHandler, times(1)).updateDishInDishApp(idPlato, requestDto);
+        verify(dishAppHandler).updateDishInDishApp(idDish, requestDto);
         assertEquals(200, response.getStatusCodeValue());
-        assertEquals(responseDto, response.getBody());
+        assertEquals(expectedResponse, response.getBody());
     }
 
     @Test
-    void actualizarEstadoPlato() {
-        Long idPlato = 1L;
-        DishUpdateEstateRequestDto requestDto = mock(DishUpdateEstateRequestDto.class);
-        when(requestDto.isEstado()).thenReturn(true);
+    void updateEstateDish_shouldReturnUpdatedEstate() {
+        Long idDish = 1L;
+        DishUpdateEstateRequestDto requestDto = new DishUpdateEstateRequestDto(true);
+        DishUpdateEstateResponseDto expectedResponse = new DishUpdateEstateResponseDto(true);
 
-        DishUpdateEstateResponseDto responseDto = new DishUpdateEstateResponseDto(true);
+        when(dishAppHandler.updateEstateDishInDishApp(idDish, true)).thenReturn(expectedResponse);
 
-        when(platoAppHandler.updateEstateDishInDishApp(idPlato, true)).thenReturn(responseDto);
+        ResponseEntity<DishUpdateEstateResponseDto> response = dishAppRestController.updateEstateDish(idDish, requestDto);
 
-        ResponseEntity<DishUpdateEstateResponseDto> response = dishAppRestController.updateEstateDish(idPlato, requestDto);
-
-        verify(platoAppHandler, times(1)).updateEstateDishInDishApp(idPlato, true);
+        verify(dishAppHandler).updateEstateDishInDishApp(idDish, true);
         assertEquals(200, response.getStatusCodeValue());
-        assertNotNull(response.getBody());
-        assertTrue(response.getBody().isEstado());
+        assertEquals(expectedResponse, response.getBody());
     }
 
     @Test
-    void getMenuRestaurante() {
-        Long idRestaurante = 1L;
-        String categoria = "categoriaEjemplo";
+    void getMenuRestaurant_shouldReturnMenuPage() {
+        Long restaurantId = 1L;
+        String category = "main";
         int page = 0;
         int size = 10;
 
-        List<DishAppResponseDto> responseList = List.of(
-                new DishAppResponseDto("Plato1", "Desc1", 100L, "url1", "cat1", idRestaurante, 1L),
-                new DishAppResponseDto("Plato2", "Desc2", 200L, "url2", "cat2", idRestaurante, 2L)
+        List<DishAppResponseDto> dishes = List.of(
+                new DishAppResponseDto("Dish 1", "Desc 1", 100L, "url1", "main", restaurantId, 1L),
+                new DishAppResponseDto("Dish 2", "Desc 2", 150L, "url2", "main", restaurantId, 2L)
         );
 
-        PageResponseDto<DishAppResponseDto> pageResponse = new PageResponseDto<>(responseList, page, size, responseList.size());
+        PageResponseDto<DishAppResponseDto> pageResponse =
+                new PageResponseDto<>(dishes, page, size, dishes.size());
 
-        when(platoAppHandler.listDishMenu(idRestaurante, categoria, page, size)).thenReturn(pageResponse);
+        when(dishAppHandler.listDishMenu(restaurantId, category, page, size)).thenReturn(pageResponse);
 
-        ResponseEntity<PageResponseDto<DishAppResponseDto>> response = dishAppRestController.getMenuRestaurant(idRestaurante, categoria, page, size);
+        ResponseEntity<PageResponseDto<DishAppResponseDto>> response =
+                dishAppRestController.getMenuRestaurant(restaurantId, category, page, size);
 
-        verify(platoAppHandler, times(1)).listDishMenu(idRestaurante, categoria, page, size);
+        verify(dishAppHandler).listDishMenu(restaurantId, category, page, size);
         assertEquals(200, response.getStatusCodeValue());
-        assertNotNull(response.getBody());
         assertEquals(2, response.getBody().getContent().size());
-        assertEquals("Plato1", response.getBody().getContent().get(0).getNombrePlato());
+        assertEquals("Dish 1", response.getBody().getContent().get(0).getNameDish());
     }
 }

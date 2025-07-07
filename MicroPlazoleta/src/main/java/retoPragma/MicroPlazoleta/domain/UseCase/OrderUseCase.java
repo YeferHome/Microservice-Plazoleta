@@ -2,17 +2,16 @@ package retoPragma.MicroPlazoleta.domain.UseCase;
 
 import retoPragma.MicroPlazoleta.domain.api.IMessagingServicePort;
 import retoPragma.MicroPlazoleta.domain.api.IOrderServicePort;
+import retoPragma.MicroPlazoleta.domain.api.ITraceabilityServicePort;
 import retoPragma.MicroPlazoleta.domain.api.IUserServicePort;
-import retoPragma.MicroPlazoleta.domain.model.Order;
-import retoPragma.MicroPlazoleta.domain.model.OrderItem;
-import retoPragma.MicroPlazoleta.domain.model.PageModel;
-import retoPragma.MicroPlazoleta.domain.model.PageRequestModel;
+import retoPragma.MicroPlazoleta.domain.model.*;
 import retoPragma.MicroPlazoleta.domain.spi.IOrderPersistencePort;
 import retoPragma.MicroPlazoleta.domain.spi.IRestaurantPersistencePort;
+import retoPragma.MicroPlazoleta.domain.util.exception.ClienteNoAutorizadoException;
 import retoPragma.MicroPlazoleta.domain.util.exception.PedidoException.*;
 import retoPragma.MicroPlazoleta.domain.util.pedidoUtil.EstateOrder;
-import retoPragma.MicroPlazoleta.domain.util.pedidoUtil.OrderValidator;
 import retoPragma.MicroPlazoleta.domain.util.pedidoUtil.OrderMessage;
+import retoPragma.MicroPlazoleta.domain.util.pedidoUtil.OrderValidator;
 
 public class OrderUseCase implements IOrderServicePort {
 
@@ -20,17 +19,21 @@ public class OrderUseCase implements IOrderServicePort {
     private final IUserServicePort userServicePort;
     private final IRestaurantPersistencePort restaurantPersistencePort;
     private final IMessagingServicePort messagingServicePort;
+    private final ITraceabilityServicePort traceabilityServicePort;
     private final OrderValidator orderValidator;
 
     public OrderUseCase(
             IOrderPersistencePort orderPersistencePort,
             IUserServicePort userServicePort,
             IRestaurantPersistencePort restaurantPersistencePort,
-            IMessagingServicePort messagingServicePort) {
+            IMessagingServicePort messagingServicePort,
+            ITraceabilityServicePort traceabilityServicePort
+    ) {
         this.orderPersistencePort = orderPersistencePort;
         this.userServicePort = userServicePort;
         this.restaurantPersistencePort = restaurantPersistencePort;
         this.messagingServicePort = messagingServicePort;
+        this.traceabilityServicePort = traceabilityServicePort;
         this.orderValidator = new OrderValidator(userServicePort, orderPersistencePort, restaurantPersistencePort);
     }
 
@@ -61,14 +64,26 @@ public class OrderUseCase implements IOrderServicePort {
     @Override
     public Order assignEmployeeAndSetInPreparation(Long orderId, Long employeeId) {
         Order order = orderPersistencePort.findById(orderId);
-
         orderValidator.validateOrder(order);
         orderValidator.validateRolEmployee(employeeId);
 
+        EstateOrder previousStatus = order.getEstate();
         order.setEmployeeAssigned(employeeId);
         order.setEstate(EstateOrder.EN_PREPARACION);
+        Order updatedOrder = orderPersistencePort.saveOrder(order);
 
-        return orderPersistencePort.saveOrder(order);
+        traceabilityServicePort.sendTraceability(
+                new OrderTraceabilityRequestModel(
+                        orderId,
+                        updatedOrder.getIdClient(),
+                        previousStatus.name(),
+                        EstateOrder.EN_PREPARACION.name(),
+                        new TraceabilityTimestamp()
+                ),
+                null
+        );
+
+        return updatedOrder;
     }
 
     @Override
@@ -80,18 +95,30 @@ public class OrderUseCase implements IOrderServicePort {
             throw new OrderProcessException();
         }
 
+        EstateOrder previousStatus = order.getEstate();
         String pin = orderValidator.generarPinSeguridad();
         order.setPin(pin);
         order.setEstate(EstateOrder.LISTO);
-        orderPersistencePort.saveOrder(order);
+        Order updatedOrder = orderPersistencePort.saveOrder(order);
 
         String phone = userServicePort.obtainNumberPhoneClient(order.getIdClient());
         String message = OrderMessage.createReadyMessage(pin);
+        messagingServicePort.sendNotification(phone, message, token);
 
-        messagingServicePort.sendNotification(phone, message,token);
+        traceabilityServicePort.sendTraceability(
+                new OrderTraceabilityRequestModel(
+                        orderId,
+                        updatedOrder.getIdClient(),
+                        previousStatus.name(),
+                        EstateOrder.LISTO.name(),
+                        new TraceabilityTimestamp()
+                ),
+                token
+        );
 
-        return order;
+        return updatedOrder;
     }
+
     @Override
     public Order markOrderAsDelivered(Long orderId, String pin) {
         Order order = orderPersistencePort.findById(orderId);
@@ -105,18 +132,55 @@ public class OrderUseCase implements IOrderServicePort {
             throw new PinInvalidateException();
         }
 
+        EstateOrder previousStatus = order.getEstate();
         order.setEstate(EstateOrder.ENTREGADO);
-        return orderPersistencePort.saveOrder(order);
+        Order updatedOrder = orderPersistencePort.saveOrder(order);
+
+        traceabilityServicePort.sendTraceability(
+                new OrderTraceabilityRequestModel(
+                        orderId,
+                        updatedOrder.getIdClient(),
+                        previousStatus.name(),
+                        EstateOrder.ENTREGADO.name(),
+                        new TraceabilityTimestamp()
+                ),
+                null
+        );
+
+        return updatedOrder;
     }
+
     @Override
-    public Order cancelOrder(Long orderId) {
+    public Order cancelOrder(Long orderId, Long clientId) {
         Order order = orderPersistencePort.findById(orderId);
 
         if (!EstateOrder.PENDIENTE.equals(order.getEstate())) {
             throw new OrderCanceledException();
         }
+        if (!order.getIdClient().equals(clientId)) {
+            throw new ClienteNoAutorizadoException();
+        }
 
+        EstateOrder previousStatus = order.getEstate();
         order.setEstate(EstateOrder.CANCELADO);
-        return orderPersistencePort.saveOrder(order);
+        Order updatedOrder = orderPersistencePort.saveOrder(order);
+
+        traceabilityServicePort.sendTraceability(
+                new OrderTraceabilityRequestModel(
+                        orderId,
+                        updatedOrder.getIdClient(),
+                        previousStatus.name(),
+                        EstateOrder.CANCELADO.name(),
+                        new TraceabilityTimestamp()
+                ),
+                null
+        );
+
+        return updatedOrder;
+    }
+
+    @Override
+    public boolean existsById(Long orderId) {
+        return orderPersistencePort.findById(orderId) != null;
     }
 }

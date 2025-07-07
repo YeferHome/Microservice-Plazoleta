@@ -67,8 +67,12 @@ public class OrderHandler implements IOrderAppHandler {
         return orderResponseMapper.toOrderResponseDto(order);
     }
     @Override
-    public OrderResponseDto cancelOrder(Long orderId) {
-        Order order = orderServicePort.cancelOrder(orderId);
+    public OrderResponseDto cancelOrder(Long orderId, Long clientId) {
+        Order order = orderServicePort.cancelOrder(orderId, clientId);
         return orderResponseMapper.toOrderResponseDto(order);
+    }
+    @Override
+    public boolean existsById(Long orderId) {
+        return orderServicePort.existsById(orderId);
     }
 }

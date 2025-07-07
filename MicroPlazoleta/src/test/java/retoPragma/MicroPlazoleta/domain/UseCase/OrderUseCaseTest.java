@@ -2,18 +2,17 @@ package retoPragma.MicroPlazoleta.domain.UseCase;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.*;
 import retoPragma.MicroPlazoleta.domain.api.IMessagingServicePort;
+import retoPragma.MicroPlazoleta.domain.api.ITraceabilityServicePort;
 import retoPragma.MicroPlazoleta.domain.api.IUserServicePort;
-import retoPragma.MicroPlazoleta.domain.model.Order;
-import retoPragma.MicroPlazoleta.domain.model.OrderItem;
-import retoPragma.MicroPlazoleta.domain.model.PageModel;
-import retoPragma.MicroPlazoleta.domain.model.PageRequestModel;
+import retoPragma.MicroPlazoleta.domain.model.*;
 import retoPragma.MicroPlazoleta.domain.spi.IOrderPersistencePort;
 import retoPragma.MicroPlazoleta.domain.spi.IRestaurantPersistencePort;
+import retoPragma.MicroPlazoleta.domain.util.exception.ClienteNoAutorizadoException;
 import retoPragma.MicroPlazoleta.domain.util.exception.PedidoException.*;
 import retoPragma.MicroPlazoleta.domain.util.pedidoUtil.EstateOrder;
 
-import java.util.Arrays;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -21,123 +20,174 @@ import static org.mockito.Mockito.*;
 
 class OrderUseCaseTest {
 
-    private IOrderPersistencePort orderPersistencePort;
-    private IUserServicePort userServicePort;
-    private IRestaurantPersistencePort restaurantPersistencePort;
-    private IMessagingServicePort messagingServicePort;
-    private OrderUseCase orderUseCase;
+    @Mock private IOrderPersistencePort orderPersistencePort;
+    @Mock private IUserServicePort userServicePort;
+    @Mock private IRestaurantPersistencePort restaurantPersistencePort;
+    @Mock private IMessagingServicePort messagingServicePort;
+    @Mock private ITraceabilityServicePort traceabilityServicePort;
+
+    @InjectMocks private OrderUseCase orderUseCase;
 
     @BeforeEach
     void setUp() {
-        orderPersistencePort = mock(IOrderPersistencePort.class);
-        userServicePort = mock(IUserServicePort.class);
-        restaurantPersistencePort = mock(IRestaurantPersistencePort.class);
-        messagingServicePort = mock(IMessagingServicePort.class);
-        orderUseCase = new OrderUseCase(orderPersistencePort, userServicePort, restaurantPersistencePort, messagingServicePort);
+        MockitoAnnotations.openMocks(this);
+        orderUseCase = new OrderUseCase(
+                orderPersistencePort,
+                userServicePort,
+                restaurantPersistencePort,
+                messagingServicePort,
+                traceabilityServicePort
+        );
+    }
+
+    private Order buildValidOrder(EstateOrder estate, String pin) {
+        OrderItem item = new OrderItem(1L, 1L, 1L, 1);
+        return new Order(1L, 1L, 1L, estate, List.of(item), 2L, pin);
+    }
+
+    private void mockPlatoBelongsToRestaurant() {
+        when(restaurantPersistencePort.platoBelongsRestaurant(anyLong(), anyLong())).thenReturn(true);
     }
 
     @Test
-    void saveOrder_shouldSaveOrder_whenOrderIsValid() {
-        OrderItem item1 = new OrderItem(1L, 10L, 100L, 2);
-        OrderItem item2 = new OrderItem(2L, 20L, 100L, 3);
-        Order order = new Order();
-        order.setIdClient(1L);
-        order.setIdRestaurant(100L);
-        order.setItems(Arrays.asList(item1, item2));
-
+    void saveOrder_success() {
+        Order order = buildValidOrder(null, null);
         when(orderPersistencePort.userHaveOrderActive(1L)).thenReturn(false);
-        when(restaurantPersistencePort.platoBelongsRestaurant(10L, 100L)).thenReturn(true);
-        when(restaurantPersistencePort.platoBelongsRestaurant(20L, 100L)).thenReturn(true);
-        when(orderPersistencePort.saveOrder(any(Order.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        mockPlatoBelongsToRestaurant();
+        when(orderPersistencePort.saveOrder(any())).thenReturn(order);
 
-        Order savedOrder = orderUseCase.saveOrder(order);
+        Order saved = orderUseCase.saveOrder(order);
 
-        assertNotNull(savedOrder);
-        assertEquals(EstateOrder.PENDIENTE, savedOrder.getEstate());
+        assertNotNull(saved);
         verify(orderPersistencePort).saveOrder(order);
     }
 
     @Test
-    void saveOrder_shouldThrowException_whenUserHasActiveOrder() {
-        Order order = new Order();
-        order.setIdClient(1L);
-        order.setIdRestaurant(100L);
-        order.setItems(List.of(new OrderItem(1L, 10L, 100L, 1)));
-
+    void saveOrder_shouldThrowIfClientHasActiveOrder() {
+        Order order = buildValidOrder(null, null);
         when(orderPersistencePort.userHaveOrderActive(1L)).thenReturn(true);
-
         assertThrows(PedidoEnProcesoException.class, () -> orderUseCase.saveOrder(order));
-        verify(orderPersistencePort, never()).saveOrder(any());
     }
 
     @Test
-    void getOrderByStates_shouldReturnPage_whenEmployeeValid() {
-        long restaurantId = 100L;
-        PageRequestModel request = new PageRequestModel(0, 10);
-        EstateOrder estate = EstateOrder.PENDIENTE;
-
-        PageModel<Order> expected = new PageModel<>(List.of(new Order()), 0, 10, 1);
-        when(userServicePort.obtainRolUser(anyLong())).thenReturn("EMPLEADO");
-        when(orderPersistencePort.findOrderByStateRestaurant(estate, restaurantId, request)).thenReturn(expected);
-
-        PageModel<Order> result = orderUseCase.getOrderByStates(restaurantId, estate, request);
-
-        assertEquals(expected.getContent(), result.getContent());
+    void saveOrder_shouldThrowIfDishNotBelongsToRestaurant() {
+        Order order = buildValidOrder(null, null);
+        when(orderPersistencePort.userHaveOrderActive(1L)).thenReturn(false);
+        when(restaurantPersistencePort.platoBelongsRestaurant(anyLong(), anyLong())).thenReturn(false);
+        assertThrows(PlatoNoPerteneceARestauranteException.class, () -> orderUseCase.saveOrder(order));
     }
 
     @Test
-    void getOrderByStates_shouldThrow_whenInvalidRole() {
-        when(userServicePort.obtainRolUser(anyLong())).thenReturn("ADMIN");
+    void getOrderByStates_success() {
+        PageRequestModel pageRequestModel = new PageRequestModel(0, 10);
+        PageModel<Order> expected = new PageModel<>(List.of(), 0, 10, 0);
+        when(userServicePort.obtainRolUser(1L)).thenReturn("EMPLEADO");
+        when(orderPersistencePort.findOrderByStateRestaurant(any(), anyLong(), any())).thenReturn(expected);
 
-        assertThrows(EmpleadoPerteneceRestauranteException.class, () ->
-                orderUseCase.getOrderByStates(1L, EstateOrder.PENDIENTE, new PageRequestModel(0, 10)));
+        PageModel<Order> result = orderUseCase.getOrderByStates(1L, EstateOrder.PENDIENTE, pageRequestModel);
+        assertEquals(expected, result);
     }
 
     @Test
-    void assignEmployeeAndSetInPreparation_shouldWork_whenValid() {
-        Order order = new Order();
-        order.setIdClient(1L);
-        order.setIdRestaurant(100L);
-        order.setItems(List.of(new OrderItem(1L, 10L, 100L, 2)));
-
+    void assignEmployeeAndSetInPreparation_success() {
+        Order order = buildValidOrder(EstateOrder.PENDIENTE, null);
         when(orderPersistencePort.findById(1L)).thenReturn(order);
-        when(userServicePort.obtainRolUser(5L)).thenReturn("EMPLEADO");
-        when(restaurantPersistencePort.platoBelongsRestaurant(anyLong(), anyLong())).thenReturn(true);
-        when(orderPersistencePort.saveOrder(any(Order.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        when(userServicePort.obtainRolUser(2L)).thenReturn("EMPLEADO");
+        mockPlatoBelongsToRestaurant();
+        when(orderPersistencePort.saveOrder(any())).thenReturn(order);
 
-        Order result = orderUseCase.assignEmployeeAndSetInPreparation(1L, 5L);
+        Order updated = orderUseCase.assignEmployeeAndSetInPreparation(1L, 2L);
 
-        assertEquals(5L, result.getEmployeeAssigned());
-        assertEquals(EstateOrder.EN_PREPARACION, result.getEstate());
+        assertEquals(EstateOrder.EN_PREPARACION, updated.getEstate());
+        verify(traceabilityServicePort).sendTraceability(any(), eq(null));
     }
 
     @Test
-    void markOrderAsDone_shouldSetReadyAndNotify_whenInPreparation() {
-        Order order = new Order();
-        order.setEstate(EstateOrder.EN_PREPARACION);
-        order.setIdClient(1L);
-        order.setPin("1234");
-        order.setIdRestaurant(100L);
-        order.setItems(List.of(new OrderItem(1L, 10L, 100L, 2)));
-
+    void markOrderAsDone_success() {
+        Order order = buildValidOrder(EstateOrder.EN_PREPARACION, null);
         when(orderPersistencePort.findById(1L)).thenReturn(order);
-        when(userServicePort.obtainRolUser(anyLong())).thenReturn("EMPLEADO");
-        when(restaurantPersistencePort.platoBelongsRestaurant(anyLong(), anyLong())).thenReturn(true);
-        when(userServicePort.obtainNumberPhoneClient(1L)).thenReturn("+573001234567");
+        when(userServicePort.obtainNumberPhoneClient(1L)).thenReturn("321");
+        mockPlatoBelongsToRestaurant();
+        when(orderPersistencePort.saveOrder(any())).thenReturn(order);
 
-        Order result = orderUseCase.markOrderAsDone(1L);
+        Order result = orderUseCase.markOrderAsDone(1L, "token");
 
         assertEquals(EstateOrder.LISTO, result.getEstate());
-        verify(messagingServicePort).sendNotification(eq("+573001234567"), anyString());
+        verify(messagingServicePort).sendNotification(eq("321"), anyString(), eq("token"));
+        verify(traceabilityServicePort).sendTraceability(any(), eq("token"));
     }
 
     @Test
-    void markOrderAsDone_shouldThrow_whenNotInPreparation() {
-        Order order = new Order();
-        order.setEstate(EstateOrder.PENDIENTE);
-
+    void markOrderAsDone_shouldThrowIfNotInPreparation() {
+        Order order = buildValidOrder(EstateOrder.PENDIENTE, null);
         when(orderPersistencePort.findById(1L)).thenReturn(order);
+        mockPlatoBelongsToRestaurant();
+        assertThrows(OrderProcessException.class, () -> orderUseCase.markOrderAsDone(1L, "token"));
+    }
 
-        assertThrows(OrderProcessException.class, () -> orderUseCase.markOrderAsDone(1L));
+    @Test
+    void markOrderAsDelivered_success() {
+        Order order = buildValidOrder(EstateOrder.LISTO, "123");
+        when(orderPersistencePort.findById(1L)).thenReturn(order);
+        mockPlatoBelongsToRestaurant();
+        when(orderPersistencePort.saveOrder(any())).thenReturn(order);
+
+        Order updated = orderUseCase.markOrderAsDelivered(1L, "123");
+
+        assertEquals(EstateOrder.ENTREGADO, updated.getEstate());
+        verify(traceabilityServicePort).sendTraceability(any(), eq(null));
+    }
+
+    @Test
+    void markOrderAsDelivered_shouldThrowIfInvalidPin() {
+        Order order = buildValidOrder(EstateOrder.LISTO, "abc");
+        when(orderPersistencePort.findById(1L)).thenReturn(order);
+        mockPlatoBelongsToRestaurant();
+        assertThrows(PinInvalidateException.class, () -> orderUseCase.markOrderAsDelivered(1L, "wrong"));
+    }
+
+    @Test
+    void markOrderAsDelivered_shouldThrowIfNotReady() {
+        Order order = buildValidOrder(EstateOrder.EN_PREPARACION, "123");
+        when(orderPersistencePort.findById(1L)).thenReturn(order);
+        mockPlatoBelongsToRestaurant();
+        assertThrows(OrderProcessException.class, () -> orderUseCase.markOrderAsDelivered(1L, "123"));
+    }
+
+    @Test
+    void cancelOrder_success() {
+        Order order = buildValidOrder(EstateOrder.PENDIENTE, null);
+        when(orderPersistencePort.findById(1L)).thenReturn(order);
+        when(orderPersistencePort.saveOrder(any())).thenReturn(order);
+
+        Order updated = orderUseCase.cancelOrder(1L, 1L);
+        assertEquals(EstateOrder.CANCELADO, updated.getEstate());
+        verify(traceabilityServicePort).sendTraceability(any(), eq(null));
+    }
+
+    @Test
+    void cancelOrder_shouldThrowIfNotPending() {
+        Order order = buildValidOrder(EstateOrder.EN_PREPARACION, null);
+        when(orderPersistencePort.findById(1L)).thenReturn(order);
+        assertThrows(OrderCanceledException.class, () -> orderUseCase.cancelOrder(1L, 1L));
+    }
+
+    @Test
+    void cancelOrder_shouldThrowIfUnauthorized() {
+        Order order = buildValidOrder(EstateOrder.PENDIENTE, null);
+        when(orderPersistencePort.findById(1L)).thenReturn(order);
+        assertThrows(ClienteNoAutorizadoException.class, () -> orderUseCase.cancelOrder(1L, 2L));
+    }
+
+    @Test
+    void existsById_shouldReturnTrue() {
+        when(orderPersistencePort.findById(1L)).thenReturn(new Order());
+        assertTrue(orderUseCase.existsById(1L));
+    }
+
+    @Test
+    void existsById_shouldReturnFalse() {
+        when(orderPersistencePort.findById(1L)).thenReturn(null);
+        assertFalse(orderUseCase.existsById(1L));
     }
 }

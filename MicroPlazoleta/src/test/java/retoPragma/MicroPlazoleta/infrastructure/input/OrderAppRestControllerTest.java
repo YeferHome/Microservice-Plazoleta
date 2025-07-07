@@ -14,12 +14,12 @@ import org.springframework.test.web.servlet.MockMvc;
 import retoPragma.MicroPlazoleta.application.dto.*;
 import retoPragma.MicroPlazoleta.application.handler.IOrderAppHandler;
 import retoPragma.MicroPlazoleta.domain.util.pedidoUtil.EstateOrder;
+import retoPragma.MicroPlazoleta.infrastructure.configuration.security.jwt.JwtService;
 
 import java.util.List;
 
 import static org.mockito.ArgumentMatchers.*;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(OrderAppRestController.class)
@@ -30,7 +30,10 @@ class OrderAppRestControllerTest {
     private MockMvc mockMvc;
 
     @MockBean
-    private IOrderAppHandler pedidoAppHandler;
+    private IOrderAppHandler orderAppHandler;
+
+    @MockBean
+    private JwtService jwtService;
 
     private ObjectMapper objectMapper;
     private OrderRequestDto orderRequestDto;
@@ -40,14 +43,11 @@ class OrderAppRestControllerTest {
     void setUp() {
         objectMapper = new ObjectMapper();
 
-        OrderItemRequestDto item = new OrderItemRequestDto();
-        item.setIdPlato(10L);
-        item.setIdRestaurante(1L);
-        item.setCantidad(2);
+        OrderItemRequestDto item = new OrderItemRequestDto(10L, 1L, 2);
 
         orderRequestDto = new OrderRequestDto();
-        orderRequestDto.setIdCliente(5L);
-        orderRequestDto.setIdRestaurante(1L);
+        orderRequestDto.setIdClient(5L);
+        orderRequestDto.setIdRestaurant(1L);
         orderRequestDto.setItems(List.of(item));
 
         OrderItemResponseDto itemResponse = new OrderItemResponseDto(10L, 2);
@@ -57,6 +57,7 @@ class OrderAppRestControllerTest {
                 5L,
                 1L,
                 List.of(itemResponse),
+                null,
                 null
         );
     }
@@ -64,7 +65,7 @@ class OrderAppRestControllerTest {
     @Test
     @WithMockUser
     void savePedido() throws Exception {
-        Mockito.when(pedidoAppHandler.saveOrder(any(OrderRequestDto.class)))
+        Mockito.when(orderAppHandler.saveOrder(any(OrderRequestDto.class)))
                 .thenReturn(orderResponseDto);
 
         mockMvc.perform(post("/orderApp/saveOrder")
@@ -80,8 +81,7 @@ class OrderAppRestControllerTest {
                 List.of(orderResponseDto), 0, 10, 1L
         );
 
-        Mockito.when(pedidoAppHandler.getOrderByEstate(
-                        anyLong(), eq(EstateOrder.PENDIENTE), anyInt(), anyInt()))
+        Mockito.when(orderAppHandler.getOrderByEstate(anyLong(), eq(EstateOrder.PENDIENTE), anyInt(), anyInt()))
                 .thenReturn(responsePage);
 
         mockMvc.perform(get("/orderApp/estate")
@@ -89,6 +89,61 @@ class OrderAppRestControllerTest {
                         .param("estate", "PENDIENTE")
                         .param("page", "0")
                         .param("size", "10"))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    @WithMockUser
+    void assignEmployeeAndSetInPreparation() throws Exception {
+        Mockito.when(orderAppHandler.assignEmployeeAndSetInPreparation(anyLong(), anyLong()))
+                .thenReturn(orderResponseDto);
+
+        mockMvc.perform(put("/orderApp/asignEmployee/1/2"))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    @WithMockUser
+    void markOrderAsDone() throws Exception {
+        Mockito.when(orderAppHandler.markOrderAsDone(anyLong(), anyString()))
+                .thenReturn(orderResponseDto);
+
+        mockMvc.perform(put("/orderApp/markOrderAsDone/1")
+                        .header("Authorization", "Bearer token123"))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    @WithMockUser
+    void markOrderAsDelivered() throws Exception {
+        PinRequestDto pinRequest = new PinRequestDto("1234");
+
+        Mockito.when(orderAppHandler.markOrderAsDelivered(anyLong(), eq("1234")))
+                .thenReturn(orderResponseDto);
+
+        mockMvc.perform(put("/orderApp/markOrderAsDelivered/1")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(pinRequest)))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    @WithMockUser
+    void cancelOrder() throws Exception {
+        Mockito.when(jwtService.extractId("token123")).thenReturn(5L);
+        Mockito.when(orderAppHandler.cancelOrder(1L, 5L)).thenReturn(orderResponseDto);
+
+        mockMvc.perform(put("/orderApp/cancelOrder/1")
+                        .header("Authorization", "Bearer token123"))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    @WithMockUser
+    void existsById() throws Exception {
+        Mockito.when(orderAppHandler.existsById(1L)).thenReturn(true);
+
+        mockMvc.perform(get("/orderApp/exists/1"))
                 .andExpect(status().isOk());
     }
 }

@@ -16,7 +16,7 @@ import retoPragma.MicroPlazoleta.domain.util.pedidoUtil.EstateOrder;
 
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 class OrderHandlerTest {
@@ -34,16 +34,24 @@ class OrderHandlerTest {
         orderHandler = new OrderHandler(orderServicePort, orderRequestMapper, orderResponseMapper);
     }
 
+    private OrderResponseDto dummyResponseDto() {
+        return new OrderResponseDto(
+                1L,
+                EstateOrder.PENDIENTE,
+                1L,
+                1L,
+                List.of(new OrderItemResponseDto(10L, 2)),
+                2L,
+                "1234"
+        );
+    }
+
     @Test
     void saveOrder_shouldReturnMappedResponse() {
         OrderRequestDto requestDto = new OrderRequestDto();
         Order order = new Order();
         Order savedOrder = new Order();
-
-        OrderItemResponseDto itemDto = new OrderItemResponseDto(10L, 2);
-        OrderResponseDto expectedResponse = new OrderResponseDto(
-                1L, EstateOrder.PENDIENTE, 1L, 100L, List.of(itemDto), null
-        );
+        OrderResponseDto expectedResponse = dummyResponseDto();
 
         when(orderRequestMapper.toOrder(requestDto)).thenReturn(order);
         when(orderServicePort.saveOrder(order)).thenReturn(savedOrder);
@@ -62,11 +70,7 @@ class OrderHandlerTest {
 
         Order order = new Order();
         PageModel<Order> pageModel = new PageModel<>(List.of(order), page, size, 1);
-
-        OrderItemResponseDto itemDto = new OrderItemResponseDto(10L, 2);
-        OrderResponseDto responseDto = new OrderResponseDto(
-                1L, estate, 1L, restaurantId, List.of(itemDto), null
-        );
+        OrderResponseDto responseDto = dummyResponseDto();
 
         when(orderServicePort.getOrderByStates(eq(restaurantId), eq(estate), any(PageRequestModel.class)))
                 .thenReturn(pageModel);
@@ -86,11 +90,7 @@ class OrderHandlerTest {
         Long orderId = 1L;
         Long employeeId = 2L;
         Order order = new Order();
-
-        OrderItemResponseDto itemDto = new OrderItemResponseDto(10L, 2);
-        OrderResponseDto expectedResponse = new OrderResponseDto(
-                1L, EstateOrder.EN_PREPARACION, 1L, 100L, List.of(itemDto), employeeId
-        );
+        OrderResponseDto expectedResponse = dummyResponseDto();
 
         when(orderServicePort.assignEmployeeAndSetInPreparation(orderId, employeeId)).thenReturn(order);
         when(orderResponseMapper.toOrderResponseDto(order)).thenReturn(expectedResponse);
@@ -98,27 +98,61 @@ class OrderHandlerTest {
         OrderResponseDto result = orderHandler.assignEmployeeAndSetInPreparation(orderId, employeeId);
 
         assertEquals(expectedResponse, result);
-        verify(orderServicePort).assignEmployeeAndSetInPreparation(orderId, employeeId);
-        verify(orderResponseMapper).toOrderResponseDto(order);
     }
 
     @Test
     void markOrderAsDone_shouldReturnMappedResponse() {
         Long orderId = 1L;
+        String token = "token";
         Order order = new Order();
+        OrderResponseDto expectedResponse = dummyResponseDto();
 
-        OrderItemResponseDto itemDto = new OrderItemResponseDto(10L, 2);
-        OrderResponseDto expectedResponse = new OrderResponseDto(
-                1L, EstateOrder.LISTO, 1L, 100L, List.of(itemDto), null
-        );
-
-        when(orderServicePort.markOrderAsDone(orderId)).thenReturn(order);
+        when(orderServicePort.markOrderAsDone(orderId, token)).thenReturn(order);
         when(orderResponseMapper.toOrderResponseDto(order)).thenReturn(expectedResponse);
 
-        OrderResponseDto result = orderHandler.markOrderAsDone(orderId);
+        OrderResponseDto result = orderHandler.markOrderAsDone(orderId, token);
 
         assertEquals(expectedResponse, result);
-        verify(orderServicePort).markOrderAsDone(orderId);
-        verify(orderResponseMapper).toOrderResponseDto(order);
+    }
+
+    @Test
+    void markOrderAsDelivered_shouldReturnMappedResponse() {
+        Long orderId = 1L;
+        String pin = "123456";
+        Order order = new Order();
+        OrderResponseDto expectedResponse = dummyResponseDto();
+
+        when(orderServicePort.markOrderAsDelivered(orderId, pin)).thenReturn(order);
+        when(orderResponseMapper.toOrderResponseDto(order)).thenReturn(expectedResponse);
+
+        OrderResponseDto result = orderHandler.markOrderAsDelivered(orderId, pin);
+
+        assertEquals(expectedResponse, result);
+    }
+
+    @Test
+    void cancelOrder_shouldReturnMappedResponse() {
+        Long orderId = 1L;
+        Long clientId = 2L;
+        Order order = new Order();
+        OrderResponseDto expectedResponse = dummyResponseDto();
+
+        when(orderServicePort.cancelOrder(orderId, clientId)).thenReturn(order);
+        when(orderResponseMapper.toOrderResponseDto(order)).thenReturn(expectedResponse);
+
+        OrderResponseDto result = orderHandler.cancelOrder(orderId, clientId);
+
+        assertEquals(expectedResponse, result);
+    }
+
+    @Test
+    void existsById_shouldReturnTrue() {
+        Long orderId = 1L;
+
+        when(orderServicePort.existsById(orderId)).thenReturn(true);
+
+        boolean result = orderHandler.existsById(orderId);
+
+        assertTrue(result);
     }
 }

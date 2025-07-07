@@ -10,12 +10,15 @@ import retoPragma.MicroPlazoleta.domain.api.*;
 import retoPragma.MicroPlazoleta.domain.spi.IDishPersistencePort;
 import retoPragma.MicroPlazoleta.domain.spi.IOrderPersistencePort;
 import retoPragma.MicroPlazoleta.domain.spi.IRestaurantPersistencePort;
+import retoPragma.MicroPlazoleta.infrastructure.input.client.TraceabilityFeignClient;
 import retoPragma.MicroPlazoleta.infrastructure.output.adapter.DishJpaAdapter;
 import retoPragma.MicroPlazoleta.infrastructure.output.adapter.OrderJpaAdapter;
 import retoPragma.MicroPlazoleta.infrastructure.output.adapter.RestaurantJpaAdapter;
+import retoPragma.MicroPlazoleta.infrastructure.output.adapter.TraceabilityAdapter;
 import retoPragma.MicroPlazoleta.infrastructure.output.mapper.IPlatoEntityMapper;
 import retoPragma.MicroPlazoleta.infrastructure.output.mapper.IPedidoEntityMapper;
 import retoPragma.MicroPlazoleta.infrastructure.output.mapper.IRestauranteEntityMapper;
+import retoPragma.MicroPlazoleta.infrastructure.output.mapper.ITraceabilityMapper;
 import retoPragma.MicroPlazoleta.infrastructure.output.repository.IDishRepository;
 import retoPragma.MicroPlazoleta.infrastructure.output.repository.IOrderRepository;
 import retoPragma.MicroPlazoleta.infrastructure.output.repository.IRestaurantRepository;
@@ -34,6 +37,9 @@ public class BeanConfiguration {
 
     private final IUserServicePort userServicePort;
     private final IMessagingServicePort messagingServicePort;
+
+    private final TraceabilityFeignClient traceabilityFeignClient;
+    private final ITraceabilityMapper traceabilityRequestMapper;
 
     @Bean
     public IDishPersistencePort dishPersistencePort() {
@@ -61,7 +67,12 @@ public class BeanConfiguration {
     }
 
     @Bean
+    public ITraceabilityServicePort traceabilityServicePort() {
+        return new TraceabilityAdapter(traceabilityFeignClient, traceabilityRequestMapper);
+    }
+
+    @Bean
     public IOrderServicePort orderServicePort() {
-        return new OrderUseCase(orderPersistencePort(), userServicePort, restaurantPersistencePort(), messagingServicePort);
+        return new OrderUseCase(orderPersistencePort(), userServicePort, restaurantPersistencePort(), messagingServicePort, traceabilityServicePort());
     }
 }

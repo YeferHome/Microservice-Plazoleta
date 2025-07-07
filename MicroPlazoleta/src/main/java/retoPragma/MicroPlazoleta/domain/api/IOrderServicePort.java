@@ -12,5 +12,6 @@ public interface IOrderServicePort {
     Order assignEmployeeAndSetInPreparation(Long orderId, Long employeeId);
     Order markOrderAsDone(Long orderId, String token);
     Order markOrderAsDelivered(Long orderId, String pin);
-    Order cancelOrder(Long orderId);
+    Order cancelOrder(Long orderId, Long clientId);
+    boolean existsById(Long orderId);
 }

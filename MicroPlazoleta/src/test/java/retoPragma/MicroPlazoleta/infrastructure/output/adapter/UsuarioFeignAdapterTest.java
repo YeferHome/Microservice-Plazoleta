@@ -7,27 +7,52 @@ import retoPragma.MicroPlazoleta.infrastructure.input.client.UsuarioFeignClient;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.*;
 
-class UsuarioFeignAdapterTest {
+class UserFeignAdapterTest {
 
     private UsuarioFeignClient usuarioFeignClient;
-    private UserFeignAdapter usuarioFeignAdapter;
+    private UserFeignAdapter userFeignAdapter;
 
     @BeforeEach
     void setUp() {
         usuarioFeignClient = mock(UsuarioFeignClient.class);
-        usuarioFeignAdapter = new UserFeignAdapter(usuarioFeignClient);
+        userFeignAdapter = new UserFeignAdapter(usuarioFeignClient);
     }
 
     @Test
-    void obtenerRolUsuario() {
+    void obtainRolUser_shouldReturnRole() {
         Long userId = 123L;
         String expectedRole = "ADMIN";
 
-        when(usuarioFeignClient.obtenerRol(userId)).thenReturn(expectedRole);
+        when(usuarioFeignClient.obtainRolUser(userId)).thenReturn(expectedRole);
 
-        String actualRole = usuarioFeignAdapter.obtainRolUser(userId);
+        String actualRole = userFeignAdapter.obtainRolUser(userId);
 
-        verify(usuarioFeignClient, times(1)).obtenerRol(userId);
+        verify(usuarioFeignClient, times(1)).obtainRolUser(userId);
         assertEquals(expectedRole, actualRole);
+    }
+
+    @Test
+    void obtainNumberPhoneClient_shouldReturnPhoneNumber() {
+        Long clientId = 456L;
+        String expectedPhone = "3216549870";
+
+        when(usuarioFeignClient.obtainNumberPhone(clientId)).thenReturn(expectedPhone);
+
+        String actualPhone = userFeignAdapter.obtainNumberPhoneClient(clientId);
+
+        verify(usuarioFeignClient, times(1)).obtainNumberPhone(clientId);
+        assertEquals(expectedPhone, actualPhone);
+    }
+
+    @Test
+    void assignRestaurantToUser_shouldCallFeignClient() {
+        Long userId = 789L;
+        Long restaurantId = 10L;
+
+        doNothing().when(usuarioFeignClient).assignRestaurantToUser(userId, restaurantId);
+
+        userFeignAdapter.assignRestaurantToUser(userId, restaurantId);
+
+        verify(usuarioFeignClient, times(1)).assignRestaurantToUser(userId, restaurantId);
     }
 }

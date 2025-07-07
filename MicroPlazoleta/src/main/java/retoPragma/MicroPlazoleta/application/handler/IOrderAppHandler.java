@@ -12,5 +12,6 @@ public interface IOrderAppHandler {
     OrderResponseDto assignEmployeeAndSetInPreparation(Long orderId, Long employeeId);
     OrderResponseDto markOrderAsDone(Long orderId, String token);
     OrderResponseDto markOrderAsDelivered(Long orderId, String pin);
-    OrderResponseDto cancelOrder(Long orderId);
+    OrderResponseDto cancelOrder(Long orderId, Long clienteId);
+    boolean existsById(Long orderId);
 }

@@ -15,6 +15,7 @@ import retoPragma.MicroPlazoleta.application.dto.PageResponseDto;
 import retoPragma.MicroPlazoleta.application.dto.PinRequestDto;
 import retoPragma.MicroPlazoleta.application.handler.IOrderAppHandler;
 import retoPragma.MicroPlazoleta.domain.util.pedidoUtil.EstateOrder;
+import retoPragma.MicroPlazoleta.infrastructure.configuration.security.jwt.JwtService;
 
 @RestController
 @RequestMapping("/orderApp")
@@ -22,6 +23,7 @@ import retoPragma.MicroPlazoleta.domain.util.pedidoUtil.EstateOrder;
 public class OrderAppRestController {
 
     private final IOrderAppHandler orderAppHandler;
+    private final JwtService jwtService;
 
     @Operation(summary = "Crear pedido en la base de datos")
     @ApiResponses(value = {
@@ -86,7 +88,14 @@ public class OrderAppRestController {
         return ResponseEntity.ok(responseDto);
 
     }
-
+    @Operation(summary = "Pedido Entregado")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Pedido Entregado.",
+                    content = @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = PageResponseDto.class))),
+            @ApiResponse(responseCode = "400", description = "Error en los parámetros", content = @Content),
+            @ApiResponse(responseCode = "500", description = "Error interno del servidor", content = @Content)
+    })
 
     @PutMapping("/markOrderAsDelivered/{orderId}")
     public ResponseEntity<OrderResponseDto> markOrderAsDelivered(
@@ -96,9 +105,36 @@ public class OrderAppRestController {
         OrderResponseDto response = orderAppHandler.markOrderAsDelivered(orderId, pinRequest.getPin());
         return ResponseEntity.ok(response);
     }
+
+    @Operation(summary = "Pedido Cancelado")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Orden Cancelada.",
+                    content = @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = PageResponseDto.class))),
+            @ApiResponse(responseCode = "400", description = "Error en los parámetros", content = @Content),
+            @ApiResponse(responseCode = "500", description = "Error interno del servidor", content = @Content)
+    })
     @PutMapping("/cancelOrder/{orderId}")
-    public ResponseEntity<OrderResponseDto> cancelOrder(@PathVariable Long orderId) {
-        OrderResponseDto response = orderAppHandler.cancelOrder(orderId);
+    public ResponseEntity<OrderResponseDto> cancelOrder(
+            @PathVariable Long orderId,
+            @RequestHeader("Authorization") String token) {
+
+        String cleanToken = token.replace("Bearer ", "");
+        Long clientId = jwtService.extractId(cleanToken);
+
+        OrderResponseDto response = orderAppHandler.cancelOrder(orderId, clientId);
         return ResponseEntity.ok(response);
+    }
+    @Operation(summary = "Orden no Existe")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Orden No Existe.",
+                    content = @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = PageResponseDto.class))),
+            @ApiResponse(responseCode = "400", description = "Error en los parámetros", content = @Content),
+            @ApiResponse(responseCode = "500", description = "Error interno del servidor", content = @Content)
+    })
+    @GetMapping("/exists/{orderId}")
+    public ResponseEntity<Boolean> existsById(@PathVariable Long orderId) {
+        return ResponseEntity.ok(orderAppHandler.existsById(orderId));
     }
 }
